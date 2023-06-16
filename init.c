@@ -102,7 +102,7 @@ init(int argc, char *argv[])
 	if (score_only) {
 		put_scores(NULL, 0);
 	}
-	srandomdev();
+	//srandomdev();
 	if (rest_file) {
 		restore(rest_file);
 		return(1);

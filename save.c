@@ -47,6 +47,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <strings.h>
 #include "rogue.h"
 
 static boolean	has_been_touched(const struct rogue_time *,

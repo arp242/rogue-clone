@@ -49,6 +49,10 @@
  *         gain or profit.
  */
 
+// From BSD cdefs.h
+#define	__dead2		__attribute__((__noreturn__))
+#define	__unused	__attribute__((__unused__))
+
 #define boolean bool
 
 #define NOTHING		((unsigned short)     0)

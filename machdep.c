@@ -124,7 +124,7 @@
 void
 md_slurp(void)
 {
-	fpurge(stdin);
+	fflush(stdin);
 }
 
 /* md_control_keybord():

@@ -1,20 +1,32 @@
-#	@(#)Makefile	8.1 (Berkeley) 5/31/93
-# $FreeBSD: src/games/rogue/Makefile,v 1.4.2.5 2002/08/07 16:31:42 ru Exp $
+CC        ?= cc
+PREFIX    ?= /usr/local
+MANPREFIX ?= ${PREFIX}/share/man
+NAME      ?= rogue
 
-PROG=	rogue
-MAN=	rogue.6
-SRCS=	hit.c init.c inventory.c level.c machdep.c main.c \
-	message.c monster.c move.c object.c pack.c play.c random.c ring.c \
-	room.c save.c score.c spec_hit.c throw.c trap.c use.c zap.c
-VARGAMES=
-GAMESCURSES=
+CFLAGS  += -DUNIX -g -Os
+LDFLAGS += -lncurses -static
 
-CFLAGS+=	-DUNIX
+SRC = hit.c init.c inventory.c level.c machdep.c main.c message.c monster.c \
+      move.c object.c pack.c play.c random.c ring.c room.c save.c score.c \
+      spec_hit.c throw.c trap.c use.c zap.c strlcpy.c
+OBJ = ${SRC:.c=.o}
 
-beforeinstall:
-.if !exists(${DESTDIR}/var/games/rogue.scores)
-	${INSTALL} -o ${BINOWN} -g ${BINGRP} -m 664 /dev/null \
-	    ${DESTDIR}/var/games/rogue.scores
-.endif
+.PHONY: all clean install uninstall
 
-.include <bsd.prog.mk>
+all: rogue
+
+.c.o:
+	${CC} -c ${CFLAGS} $<
+
+rogue: ${OBJ}
+	${CC} -o $@ ${OBJ} ${CFLAGS} ${LDFLAGS}
+
+install:
+	install -Dm755 rogue   ${DESTDIR}${PREFIX}/bin/${NAME}
+	install -Dm644 rogue.6 ${DESTDIR}${MANPREFIX}/man6/${NAME}.6
+
+clean:
+	rm -f rogue ${OBJ}
+
+uninstall:
+	rm -f ${DESTDIR}${PREFIX}/bin/${NAME} ${DESTDIR}${MANPREFIX}/man6/${NAME}.6
