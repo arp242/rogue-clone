@@ -444,11 +444,6 @@ struct rogue_time {
 	short second;	/* 0 - 59 */
 };
 
-/*
- * external routine declarations.
- */
-#define rrandom random
-
 /* hit.c */
 void	mon_hit(object *);
 void	rogue_hit(object *, boolean);
@@ -511,8 +506,9 @@ char	*md_malloc(int);
 void	md_exit(int) __dead2;
 void	md_lock(boolean);
 void	md_shell(const char *);
-char    *md_scorefile();
-char    *md_savefile();
+char    *md_scorefile(void);
+char    *md_savefile(void);
+char    *md_savedir(void);
 void    mkdir_p(const char *);
 #endif
 

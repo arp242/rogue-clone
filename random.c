@@ -33,6 +33,7 @@
  * $FreeBSD: src/games/rogue/random.c,v 1.6 1999/11/30 03:49:26 billf Exp $
  */
 
+#include <stdlib.h>
 #include "rogue.h"
 
 /*
@@ -58,7 +59,7 @@ get_rand(int x, int y)
 		y = x;
 		x = t;
 	}
-	lr = rrandom();
+	lr = random();
 	lr &= 0x00003fffL;
 	r = (int)lr;
 	r = (r % ((y - x) + 1)) + x;
@@ -74,5 +75,5 @@ rand_percent(int percentage)
 boolean
 coin_toss(void)
 {
-	return(((rrandom() & 01) ? 1 : 0));
+	return(((random() & 01) ? 1 : 0));
 }

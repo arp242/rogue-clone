@@ -406,7 +406,7 @@ char * md_getenv(const char *name)
 	return(value);
 }
 
-char * md_savedir() {
+char * md_savedir(void) {
 	char *base = md_getenv("XDG_DATA_HOME");
 	if (!base || base[0] != '/') {
 		char *home = md_getenv("HOME");
@@ -424,7 +424,7 @@ char * md_savedir() {
 	return dir;
 }
 
-char * md_scorefile() {
+char * md_scorefile(void) {
 	char *dir = md_savedir();
 
 	char *file = malloc(strlen(dir) + 8);
@@ -434,7 +434,7 @@ char * md_scorefile() {
 	return file;
 }
 
-char * md_savefile() {
+char * md_savefile(void) {
 	char *dir = md_savedir();
 
 	char *file = malloc(strlen(dir) + 6);
