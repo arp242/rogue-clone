@@ -23,8 +23,8 @@ rogue: ${OBJ}
 	${CC} -o $@ ${OBJ} ${CFLAGS} ${LDFLAGS}
 
 install:
-	install -Dm755 rogue   ${DESTDIR}${PREFIX}/bin/${NAME}
-	install -Dm644 rogue.6 ${DESTDIR}${MANPREFIX}/man6/${NAME}.6
+	install -Dm755 rogue       ${DESTDIR}${PREFIX}/bin/${NAME}
+	install -Dm644 doc/rogue.6 ${DESTDIR}${MANPREFIX}/man6/${NAME}.6
 
 clean:
 	rm -f rogue ${OBJ}

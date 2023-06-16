@@ -24,6 +24,12 @@ system-wide.
 In the game use `?` to get a list of keybinds and `/` to get the meaning of a
 character on the screen.
 
+The original *A Guide to the Dungeons of Doom* manual is also available as [PDF]
+or [text].
+
+[PDF]: doc/a-guide-to-the-dungeons-of-doom.pdf
+[text]: doc/a-guide-to-the-dungeons-of-doom.txt
+
 Probably the most confusing for most will be the movement keys; it uses Vim-like
 hjkl keys, and with some extra ones for diagonal movement:
 
@@ -38,8 +44,10 @@ to it; I haven't played this in over 10 years, but I can still do these
 movements without difficulty from muscle memory (which probably says something
 sad about my youth...)
 
-I should perhaps add numpad keys as an alternative, but my laptop (and many
-laptops) doesn't have numpad, so meh.
+Adding alternative movements with e.g. the numpad is a bit involved, as you can
+use e.g. `10s` to do 10 searches. Could maybe just disable that, or allow counts
+only as `C10s` or something? You won't be able to run with that though (I think?
+I'm not sure what Shift+6 sends on a numpad – I don't have one to test).
 
 You can set options with `o`; these are *not* saved, but you can use the
 `ROGUEOPTS` environment variable, which takes a comma separated list of options:
@@ -53,6 +61,8 @@ You can set options with `o`; these are *not* saved, but you can use the
 | fruit=          | slime-mold                | Name of the "fruit" food                            |
 | passgo          | (not set)                 | Run around corners with Shift                       |
 | openinv         | (not set)                 | Automatically open inventory on w, W, P, etc.       |
+
+e.g. `export ROGUEOPTS='name=Zaphod Beeblebrox,openinv'`.
 
 Changes
 -------
