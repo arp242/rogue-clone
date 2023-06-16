@@ -303,7 +303,7 @@ rw_dungeon(FILE *fp, boolean rw)
 		if (rw) {
 			r_write(fp, (char *) dungeon[i], (DCOLS * sizeof(dungeon[0][0])));
 			for (j = 0; j < DCOLS; j++) {
-				buf[j] = mvinch(i, j);
+				buf[j] = (short)mvinch(i, j);
 			}
 			r_write(fp, buf, DCOLS);
 		} else {
