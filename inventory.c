@@ -143,7 +143,7 @@ static const char *const syllables[MAXSYLLABLES] = {
 	"poxi "
 };
 
-#define COMS 48
+#define COMS 47
 
 struct id_com_s {
 	short com_char;
@@ -153,7 +153,7 @@ struct id_com_s {
 static const struct id_com_s com_id_tab[COMS] = {
 	{ '?',		"?       prints help" },
 	{ 'r',		"r       read scroll" },
-	{ '/',		"/     	 identify object" },
+	{ '/',		"/       identify object" },
 	{ 'e',		"e       eat food" },
 	{ 'h',		"h       left " },
 	{ 'w',		"w       wield a weapon" },
@@ -193,7 +193,6 @@ static const struct id_com_s com_id_tab[COMS] = {
 	{ '.',		".       rest for a turn" },
 	{ 'Q',		"Q       quit" },
 	{ ',',		",       pick something up" },
-	{ '!',		"!       shell escape" },
 	{ 'i',		"i       inventory" },
 	{ 'F',		"F<dir>  fight till either of you dies" },
 	{ 'I',		"I       inventory single item" },

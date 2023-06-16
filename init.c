@@ -76,7 +76,11 @@ const char *byebye_string = "Okay, bye bye!";
 boolean init(int argc, char *argv[]) {
 	const char *pn;
 
+#ifdef WINDOWS
+	pn = md_getenv("USERNAME");
+#else
 	pn = md_getenv("USER");
+#endif
 	if ((!pn) || (strlen(pn) >= MAX_OPT_LEN)) {
 		clean_up("Hey!  Who are you?");
 	}
@@ -93,8 +97,7 @@ boolean init(int argc, char *argv[]) {
 	}
 
 	if (!score_only && !rest_file) {
-		printf("Hello %s, just a moment while I dig the dungeon...",
-			nick_name);
+		printf("Hello %s, just a moment while I dig the dungeon...", nick_name);
 		fflush(stdout);
 	}
 
@@ -190,9 +193,7 @@ static void player_init(void) {
 	add_to_pack(obj, &rogue.pack, 1);
 }
 
-void
-clean_up(const char *estr)
-{
+void clean_up(const char *estr) {
 	if (save_is_interactive) {
 		if (init_curses) {
 			move(DROWS-1, 0);
@@ -204,9 +205,7 @@ clean_up(const char *estr)
 	md_exit(0);
 }
 
-void
-start_window(void)
-{
+void start_window(void) {
 	cbreak();
 	noecho();
 #ifndef BAD_NONL
@@ -215,16 +214,15 @@ start_window(void)
 	md_control_keybord(0);
 }
 
-void
-stop_window(void)
-{
+void stop_window(void) {
+	// Doesn't seem present in pdcurses?
+#ifndef WINDOWS
 	endwin();
+#endif
 	md_control_keybord(1);
 }
 
-void
-byebye(__unused int sig)
-{
+void byebye(__unused int sig) {
 	md_ignore_signals();
 	if (ask_quit) {
 		quit(1);
@@ -234,9 +232,7 @@ byebye(__unused int sig)
 	md_heed_signals();
 }
 
-void
-onintr(__unused int sig)
-{
+void onintr(__unused int sig) {
 	md_ignore_signals();
 	if (cant_int) {
 		did_int = 1;
@@ -247,9 +243,7 @@ onintr(__unused int sig)
 	md_heed_signals();
 }
 
-void
-error_save(__unused int sig)
-{
+void error_save(__unused int sig) {
 	save_is_interactive = 0;
 	save_into_file(error_file);
 	clean_up("");

@@ -179,9 +179,6 @@ CH:
 		case '?':
 			id_com();
 			break;
-		case '!':
-			do_shell();
-			break;
 		case 'o':
 			edit_opts();
 			break;

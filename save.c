@@ -93,7 +93,11 @@ save_into_file(const char *sfile)
 	struct rogue_time rt_buf;
 
 	if (sfile[0] == '~') {
+#ifdef WINDOWS
 		if ((hptr = md_getenv("HOME")) != NULL) {
+#else
+		if ((hptr = md_getenv("USERPROFILE")) != NULL) {
+#endif
 			len = strlen(hptr) + strlen(sfile);
 			name_buffer = md_malloc(len);
 			if (name_buffer == NULL) {
@@ -107,8 +111,6 @@ save_into_file(const char *sfile)
 
 		}
 	}
-	/* revoke */
-	setgid(getgid());
 	if (	((fp = fopen(sfile, "w")) == NULL) ||
 			((file_id = md_get_file_id(sfile)) == -1)) {
 		message("problem accessing the save file", 0);
@@ -169,8 +171,6 @@ del_save_file(void)
 {
 	if (!save_name[0])
 		return;
-	/* revoke */
-	setgid(getgid());
 	md_df(save_name);
 }
 
@@ -194,7 +194,7 @@ void restore(const char *fname) {
 	r_read(fp, (char *) &max_level, sizeof(max_level));
 	read_string(hunger_str, fp, sizeof hunger_str);
 
-	snprintf(tbuf, 39, "%s", login_name);
+	snprintf(tbuf, 40, "%s", login_name);
 	read_string(login_name, fp, sizeof login_name);
 	if (strcmp(tbuf, login_name)) {
 		clean_up("you're not the original player");

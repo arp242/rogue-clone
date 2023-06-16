@@ -4,7 +4,8 @@ MANPREFIX ?= ${PREFIX}/share/man
 NAME      ?= rogue
 STATIC    ?= -static
 
-CFLAGS  += -std=c99 -g -Os -Wall -pedantic -DUNIX -D_DEFAULT_SOURCE
+# Add -DWINDOWS for Windows (you need to keep -DUNIX!)
+CFLAGS  += -std=c99 -g -Os -Wall -pedantic -D_DEFAULT_SOURCE -DUNIX
 LDFLAGS += -lncurses ${STATIC}
 
 SRC = hit.c init.c inventory.c level.c machdep.c main.c message.c monster.c \

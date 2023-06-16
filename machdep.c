@@ -84,15 +84,22 @@
  *
  */
 
+// Shim out flock() on Windows; it's not that critical.
+#ifdef WINDOWS
+#  define LOCK_EX 0
+#  define LOCK_NB 0
+#  define flock(fd, fl) 0
+#endif
+
 #ifdef UNIX
 
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
-#include <pwd.h>
+//#include <pwd.h>
 #include <time.h>
+#include <fcntl.h>
 
 #ifdef UNIX_BSD4_2
 #include <sys/time.h>
@@ -104,7 +111,7 @@
 
 #include <signal.h>
 #include <stdlib.h>
-#include <termios.h>
+//#include <termios.h>
 #include <unistd.h>
 #include "rogue.h"
 
@@ -217,8 +224,10 @@ void
 md_heed_signals(void)
 {
 	signal(SIGINT, onintr);
+#ifndef WINDOWS
 	signal(SIGQUIT, byebye);
 	signal(SIGHUP, error_save);
+#endif
 }
 
 /* md_ignore_signals():
@@ -236,9 +245,11 @@ md_heed_signals(void)
 void
 md_ignore_signals(void)
 {
-	signal(SIGQUIT, SIG_IGN);
 	signal(SIGINT, SIG_IGN);
+#ifndef WINDOWS
+	signal(SIGQUIT, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
+#endif
 }
 
 /* md_get_file_id():
@@ -409,16 +420,28 @@ char * md_getenv(const char *name)
 char * md_savedir(void) {
 	char *base = md_getenv("XDG_DATA_HOME");
 	if (!base || base[0] != '/') {
+#ifdef WINDOWS
+		char *home = md_getenv("USERPROFILE");
+		if (!home)
+			clean_up("md_scorefile: invalid $HOME\n");
+		base = malloc(strlen(home) + 14);
+		snprintf(base, strlen(home) + 8, "%s/_rogue", home);
+#else
 		char *home = md_getenv("HOME");
 		if (!home || home[0] != '/')
 			clean_up("md_scorefile: invalid $HOME\n");
 		base = malloc(strlen(home) + 14);
 		snprintf(base, strlen(home) + 14, "%s/.local/share", home);
+#endif
 	}
 
 	char *dir = malloc(strlen(base) + 7);
 	snprintf(dir, strlen(base) + 7, "%s/rogue", base);
+#ifdef WINDOWS
+	mkdir(dir);
+#else
 	mkdir(dir, 0755);
+#endif
 
 	free(base);
 	return dir;
@@ -483,9 +506,7 @@ md_exit(int status)
  * the lock is released.
  */
 
-void
-md_lock(boolean l)
-{
+void md_lock(boolean l) {
 	static int fd;
 	short tries;
 
@@ -500,36 +521,6 @@ md_lock(boolean l)
 	} else {
 		flock(fd, LOCK_NB);
 		close(fd);
-	}
-}
-
-/* md_shell():
- *
- * This function spawns a shell for the user to use.  When this shell is
- * terminated, the game continues.  Since this program may often be run
- * setuid to gain access to privileged files, care is taken that the shell
- * is run with the user's REAL user id, and not the effective user id.
- * The effective user id is restored after the shell completes.
- */
-
-void
-md_shell(const char *shell)
-{
-	int w;
-	pid_t pid;
-
-	pid = fork();
-	switch (pid) {
-	case -1:
-		break;
-	case 0:
-		/* revoke */
-		setgid(getgid());
-		execl(shell, shell, NULL);
-		_exit(255);
-	default:
-		waitpid(pid, &w, 0);
-		break;
 	}
 }
 

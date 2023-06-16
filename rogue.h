@@ -507,7 +507,6 @@ char	*md_getenv(const char *);
 char	*md_malloc(int);
 void	md_exit(int) __dead2;
 void	md_lock(boolean);
-void	md_shell(const char *);
 char    *md_scorefile(void);
 char    *md_savefile(void);
 char    *md_savedir(void);
@@ -625,7 +624,6 @@ boolean	is_all_connected(void);
 void	draw_magic_map(void);
 void	dr_course(object *, boolean, short, short);
 void	edit_opts(void);
-void	do_shell(void);
 
 /* save.c */
 void	save_game(void);

@@ -633,24 +633,3 @@ opt_go(int i)
 {
 	move(i, strlen(options[i].prompt));
 }
-
-void
-do_shell(void)
-{
-#ifdef UNIX
-	const char *sh;
-
-	md_ignore_signals();
-	if (!(sh = md_getenv("SHELL"))) {
-		sh = "/bin/sh";
-	}
-	move(LINES-1, 0);
-	refresh();
-	stop_window();
-	printf("\nCreating new shell...\n");
-	md_shell(sh);
-	start_window();
-	wrefresh(curscr);
-	md_heed_signals();
-#endif
-}

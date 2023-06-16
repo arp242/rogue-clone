@@ -59,7 +59,11 @@ get_rand(int x, int y)
 		y = x;
 		x = t;
 	}
+#ifdef WINDOWS
+	lr = rand();
+#else
 	lr = random();
+#endif
 	lr &= 0x00003fffL;
 	r = (int)lr;
 	r = (r % ((y - x) + 1)) + x;
@@ -75,5 +79,9 @@ rand_percent(int percentage)
 boolean
 coin_toss(void)
 {
+#ifdef WINDOWS
+	return(((rand() & 01) ? 1 : 0));
+#else
 	return(((random() & 01) ? 1 : 0));
+#endif
 }
