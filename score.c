@@ -46,8 +46,8 @@
  */
 
 #include <stdio.h>
+#include <errno.h>
 #include "rogue.h"
-#include "pathnames.h"
 
 static void center(short, const char *);
 static int get_value(const object *);
@@ -57,7 +57,7 @@ static void insert_score(char [][82], char [][30], const char *, short, short,
 static int name_cmp(char *, const char *);
 static void nickize(char *, const char *, const char *);
 static void sell_pack(void);
-static void sf_error(void) __dead2;
+static void sf_error(const char *) __dead2;
 
 void
 killed_by(const object *monster, short other)
@@ -196,38 +196,40 @@ quit(boolean from_intrpt)
 void
 put_scores(const object *monster, short other)
 {
-	short i, n, rank = 10, x, ne = 0, found_player = -1;
+	short i, n, rank = 10, x, ne = 0;
 	char scores[10][82];
 	char n_names[10][30];
 	char buf[128];
 	FILE *fp;
 	long s;
+	const char *file = md_scorefile();
 	boolean pause = score_only;
 
 	md_lock(1);
 
-	if ((fp = fopen(_PATH_SCOREFILE, "r+")) == NULL &&
-	    (fp = fopen(_PATH_SCOREFILE, "w+")) == NULL) {
-		message("cannot read/write/create score file", 0);
-		sf_error();
+	if ((fp = fopen(file, "r+")) == NULL && (fp = fopen(file, "w+")) == NULL) {
+		char errmsg[1024];
+	    snprintf(errmsg, 1024, "cannot read/write score file %s: %s", file, strerror(errno));
+		message(errmsg, 0);
+		sf_error(errmsg);
 	}
 	rewind(fp);
 	xxx(1);
 
 	for (i = 0; i < 10; i++) {
 		if (((n = fread(scores[i], sizeof(char), 80, fp)) < 80) && (n != 0)) {
-			sf_error();
+			sf_error(NULL);
 		} else if (n != 0) {
 			xxxx(scores[i], 80);
 			if ((n = fread(n_names[i], sizeof(char), 30, fp)) < 30) {
-				sf_error();
+				sf_error(NULL);
 			}
 			xxxx(n_names[i], 30);
 		} else {
 			break;
 		}
 		ne++;
-		if ((!score_only) && (found_player == -1)) {
+		if ((!score_only)) {
 			if (!name_cmp(scores[i]+15, login_name)) {
 				x = 5;
 				while (scores[i][x] == ' ') {
@@ -236,19 +238,8 @@ put_scores(const object *monster, short other)
 				s = lget_number(scores[i] + x);
 				if (rogue.gold < s) {
 					score_only = 1;
-				} else {
-					found_player = i;
 				}
 			}
-		}
-	}
-
-	/* Remove a superseded entry, if any. */
-	if (found_player != -1) {
-		ne--;
-		for (i = found_player; i < ne; i++) {
-			strcpy(scores[i], scores[i+1]);
-			strcpy(n_names[i], n_names[i+1]);
 		}
 	}
 
@@ -576,9 +567,12 @@ center(short row, const char *buf)
 }
 
 static void
-sf_error(void)
+sf_error(const char *msg)
 {
 	md_lock(0);
 	message("", 1);
-	clean_up("sorry, score file is out of order");
+	if (msg != NULL)
+		clean_up(msg);
+	else
+		clean_up("sorry, score file is out of order");
 }

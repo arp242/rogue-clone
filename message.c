@@ -47,7 +47,6 @@
 
 #include <stdio.h>
 #include "rogue.h"
-#include "pathnames.h"
 
 static char msgs[NMESSAGES][DCOLS] = {"", "", "", "", ""};
 static short msg_col = 0, imsg = -1;
@@ -319,7 +318,7 @@ save_screen(void)
 	char buf[DCOLS+2];
 	boolean found_non_blank;
 
-	if ((fp = fopen(_PATH_SCREENDUMP, "w")) != NULL) {
+	if ((fp = fopen(md_savefile(), "w")) != NULL) {
 		for (i = 0; i < DROWS; i++) {
 			found_non_blank = 0;
 			for (j = (DCOLS - 1); j >= 0; j--) {

@@ -37,10 +37,8 @@
 .Nd exploring The Dungeons of Doom
 .Sh SYNOPSIS
 .Nm
-.Op Fl r
 .Op Ar save_file
 .Op Fl s
-.Op Fl d
 .Sh DESCRIPTION
 The
 .Nm
@@ -71,7 +69,7 @@ will give you a list of the top-ten scorers.
 The scoring is based entirely upon how much gold you get.
 There is a 10% penalty for getting yourself killed.
 .Pp
-If
+If the savefile at the default path exists it will be loaded automatically, or if
 .Ar save_file
 is specified,
 .Nm
@@ -86,10 +84,10 @@ For more detailed directions, read the document
 .%B "A Guide to the Dungeons of Doom"
 .Re
 .Sh FILES
-.Bl -tag -width /var/games/rogue.scoresXX -compact
-.It Pa /var/games/rogue.scores
+.Bl -tag -width ~/.local/share/rogue/scoreXX -compact
+.It Pa ~/.local/share/rogue/score
 score file
-.It Pa rogue.save
+.It Pa ~/.local/share/rogue/save
 default save file
 .El
 .Sh SEE ALSO

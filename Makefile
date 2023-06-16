@@ -2,9 +2,10 @@ CC        ?= cc
 PREFIX    ?= /usr/local
 MANPREFIX ?= ${PREFIX}/share/man
 NAME      ?= rogue
+STATIC    ?= -static
 
 CFLAGS  += -DUNIX -g -Os
-LDFLAGS += -lncurses -static
+LDFLAGS += -lncurses ${STATIC}
 
 SRC = hit.c init.c inventory.c level.c machdep.c main.c message.c monster.c \
       move.c object.c pack.c play.c random.c ring.c room.c save.c score.c \

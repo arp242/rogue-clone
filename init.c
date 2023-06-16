@@ -46,6 +46,7 @@
  */
 
 #include <stdio.h>
+#include <sys/stat.h>
 #include "rogue.h"
 
 static void do_args(int, char **);
@@ -75,7 +76,7 @@ init(int argc, char *argv[])
 {
 	const char *pn;
 
-	pn = md_gln();
+	pn = md_getenv("USER");
 	if ((!pn) || (strlen(pn) >= MAX_OPT_LEN)) {
 		clean_up("Hey!  Who are you?");
 	}
@@ -83,6 +84,13 @@ init(int argc, char *argv[])
 
 	do_args(argc, argv);
 	do_opts();
+	struct stat s;
+	int exist = stat(save_file, &s);
+	if (exist == 0) {
+		rest_file = save_file;
+		printf("Restoring from %s", rest_file);
+		fflush(stdout);
+	}
 
 	if (!score_only && !rest_file) {
 		printf("Hello %s, just a moment while I dig the dungeon...",
@@ -298,7 +306,7 @@ do_opts(void)
 	 * to them so that the options editor has data to work with.
 	 */
 	init_str(&nick_name, login_name);
-	init_str(&save_file, "rogue.save");
+	init_str(&save_file, md_savefile());
 	init_str(&fruit, "slime-mold");
 }
 

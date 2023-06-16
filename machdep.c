@@ -107,7 +107,6 @@
 #include <termios.h>
 #include <unistd.h>
 #include "rogue.h"
-#include "pathnames.h"
 
 /* md_slurp:
  *
@@ -365,28 +364,6 @@ md_df(const char *fname)
 	return(1);
 }
 
-/* md_gln: (Get login name)
- *
- * This routine returns the login name of the user.  This string is
- * used mainly for identifying users in score files.
- *
- * A dummy string may be returned if you are unable to implement this
- * function, but then the score file would only have one name in it.
- */
-
-const char *
-md_gln(void)
-{
-	struct passwd *p;
-	char *s;
-
-	if ((s = getlogin()))
-		return (s);
-	if (!(p = getpwuid(getuid())))
-		return (NULL);
-	return (p->pw_name);
-}
-
 /* md_sleep:
  *
  * This routine causes the game to pause for the specified number of
@@ -420,14 +397,51 @@ md_sleep(int nsecs)
  *
  */
 
-char *
-md_getenv(const char *name)
+char * md_getenv(const char *name)
 {
 	char *value;
 
 	value = getenv(name);
 
 	return(value);
+}
+
+char * md_savedir() {
+	char *base = md_getenv("XDG_DATA_HOME");
+	if (!base || base[0] != '/') {
+		char *home = md_getenv("HOME");
+		if (!home || home[0] != '/')
+			clean_up("md_scorefile: invalid $HOME\n");
+		base = malloc(strlen(home) + 14);
+		snprintf(base, strlen(home) + 14, "%s/.local/share", home);
+	}
+
+	char *dir = malloc(strlen(base) + 7);
+	snprintf(dir, strlen(base) + 7, "%s/rogue", base);
+	mkdir(dir, 0755);
+
+	free(base);
+	return dir;
+}
+
+char * md_scorefile() {
+	char *dir = md_savedir();
+
+	char *file = malloc(strlen(dir) + 8);
+	snprintf(file, strlen(dir) + 8, "%s/score", dir);
+
+	free(dir);
+	return file;
+}
+
+char * md_savefile() {
+	char *dir = md_savedir();
+
+	char *file = malloc(strlen(dir) + 6);
+	snprintf(file, strlen(dir) + 8, "%s/save", dir);
+
+	free(dir);
+	return file;
 }
 
 /* md_malloc()
@@ -463,9 +477,7 @@ md_exit(int status)
 /* md_lock():
  *
  * This function is intended to give the user exclusive access to the score
- * file.  It does so by flock'ing the score file.  The full path name of the
- * score file should be defined for any particular site in rogue.h.  The
- * constants _PATH_SCOREFILE defines this file name.
+ * file.  It does so by flock'ing the score file.
  *
  * When the parameter 'l' is non-zero (true), a lock is requested.  Otherwise
  * the lock is released.
@@ -478,7 +490,7 @@ md_lock(boolean l)
 	short tries;
 
 	if (l) {
-		if ((fd = open(_PATH_SCOREFILE, O_RDONLY)) < 1) {
+		if ((fd = open(md_scorefile(), O_RDONLY)) < 1) {
 			message("cannot lock score file", 0);
 			return;
 		}

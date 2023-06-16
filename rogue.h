@@ -505,13 +505,15 @@ int	md_link_count(const char *);
 void	md_gct(struct rogue_time *);
 void	md_gfmt(const char *, struct rogue_time *);
 boolean	md_df(const char *);
-const char	*md_gln(void);
 void	md_sleep(int);
 char	*md_getenv(const char *);
 char	*md_malloc(int);
 void	md_exit(int) __dead2;
 void	md_lock(boolean);
 void	md_shell(const char *);
+char    *md_scorefile();
+char    *md_savefile();
+void    mkdir_p(const char *);
 #endif
 
 /* message.c */

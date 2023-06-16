@@ -174,9 +174,7 @@ del_save_file(void)
 	md_df(save_name);
 }
 
-void
-restore(const char *fname)
-{
+void restore(const char *fname) {
 	FILE *fp = NULL;
 	struct rogue_time saved_time, mod_time;
 	char buf[4];
