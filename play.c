@@ -83,7 +83,7 @@ CH:
 			search(((count > 0) ? count : 1), 0);
 			break;
 		case 'i':
-			inventory(&rogue.pack, ALL_OBJECTS);
+			inventory(&rogue.pack, ALL_OBJECTS, 0);
 			break;
 		case 'f':
 			fight(0);
@@ -238,7 +238,7 @@ CH:
 			break;
 		case '\011':
 			if (wizard) {
-				inventory(&level_objects, ALL_OBJECTS);
+				inventory(&level_objects, ALL_OBJECTS, 0);
 			} else {
 				message(unknown_command, 0);
 			}

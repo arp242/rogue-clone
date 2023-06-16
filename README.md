@@ -52,10 +52,11 @@ You can set options with `o`; these are *not* saved, but you can use the
 | noskull, notomb | (not set)                 | Don't display headstone after death                 |
 | fruit=          | slime-mold                | Name of the "fruit" food                            |
 | passgo          | (not set)                 | Run around corners with Shift                       |
+| openinv         | (not set)                 | Automatically open inventory on w, W, P, etc.       |
 
 Changes
 -------
-The core game is mostly unchanged, aside from a few small things:
+The core game is unchanged, with just a few small quality of life enhancements:
 
 - Scores are stored in `~/.local/share/rogue/score` instead of
   `/var/games/rogue/scores`. It also stores all runs for all users, instead of
@@ -72,6 +73,8 @@ The core game is mostly unchanged, aside from a few small things:
 
 - Also allow Esc and Enter to clear "--press space to continue--" prompts.
 
+The plan is not to add entire new features or change the gameplay in any
+meaningful way, but some convenience or UI enhancements are okay.
 
 Sources
 -------

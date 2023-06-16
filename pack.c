@@ -273,9 +273,7 @@ void wait_for_ack(void) {
 	}
 }
 
-short
-pack_letter(const char *prompt, unsigned short mask)
-{
+short pack_letter(const char *prompt, unsigned short mask) {
 	short ch;
 	unsigned short tmask = mask;
 
@@ -283,8 +281,9 @@ pack_letter(const char *prompt, unsigned short mask)
 		message("nothing appropriate", 0);
 		return(CANCEL);
 	}
+	if (openinv)
+		inventory(&rogue.pack, mask, 1);
 	for (;;) {
-
 		message(prompt, 0);
 
 		for (;;) {
@@ -299,13 +298,14 @@ pack_letter(const char *prompt, unsigned short mask)
 		if (ch == LIST) {
 			check_message();
 			mask = tmask;
-			inventory(&rogue.pack, mask);
+			inventory(&rogue.pack, mask, 1);
 		} else {
 			break;
 		}
 		mask = tmask;
 	}
 	check_message();
+	clear_inventory();
 	return(ch);
 }
 
@@ -383,9 +383,7 @@ do_wear(object *obj)
 	obj->identified = 1;
 }
 
-void
-wield(void)
-{
+void wield(void) {
 	short ch;
 	object *obj;
 	char desc[DCOLS];

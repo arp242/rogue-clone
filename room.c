@@ -51,7 +51,7 @@ room rooms[MAXROOMS];
 
 static boolean rooms_visited[MAXROOMS];
 
-#define NOPTS 6
+#define NOPTS 7
 static const struct option {
 	const char *prompt;
 	boolean is_bool;
@@ -71,6 +71,10 @@ static const struct option {
 		1, NULL, &ask_quit
 	},
 	{
+		"Automatically open inventory on w, W, P, etc. (\"openinv\"): ",
+		1, NULL, &openinv
+	},
+	{
 		"Name (\"name\"): ",
 		0, &nick_name, NULL
 	},
@@ -81,7 +85,7 @@ static const struct option {
 	{
 		"Save file (\"file\"): ",
 		0, &save_file, NULL
-	}
+	},
 };
 
 static boolean get_oth_room(short, short *, short *);
@@ -601,9 +605,7 @@ CH:
 	}
 }
 
-static void
-opt_show(int i)
-{
+static void opt_show(int i) {
 	const char *s;
 	const struct option *opt = &options[i];
 

@@ -469,7 +469,8 @@ void	error_save(int) __dead2;
 unsigned long seed(void);
 
 /* inventory.c */
-void	inventory(const object *, unsigned short);
+void	inventory(const object *, unsigned short, short);
+void	clear_inventory(void);
 void	id_com(void);
 void	mix_colors(void);
 void	make_scroll_titles(void);
@@ -699,6 +700,7 @@ extern	boolean	mon_disappeared;
 extern	boolean	msg_cleared;
 extern	boolean	no_skull;
 extern	boolean	passgo;
+extern  boolean openinv;
 extern	boolean	r_see_invisible;
 extern	boolean	r_teleport;
 extern	boolean	save_is_interactive;

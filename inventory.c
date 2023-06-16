@@ -205,10 +205,15 @@ static boolean get_com_id(int *, short);
 static boolean pr_com_id(int);
 static boolean pr_motion_char(int);
 
-void inventory(const object *pack, unsigned short mask) {
+// Store this as globals so we can set it in inventory() and clear the
+// screen again in clear_inventory() – this is a fast but a bit of a hacky way
+// to add the openinv option.
+short last_inv_i, last_inv_j, last_inv_col;
+char inv_descs[MAX_PACK_COUNT+1][DCOLS];
+
+void inventory(const object *pack, unsigned short mask, short dont_wait) {
 	object *obj;
 	short i = 0, j, maxlen = 0, n;
-	char descs[MAX_PACK_COUNT+1][DCOLS];
 	short row, col;
 
 	obj = pack->next_object;
@@ -219,41 +224,51 @@ void inventory(const object *pack, unsigned short mask) {
 	}
 	while (obj) {
 		if (obj->what_is & mask) {
-			descs[i][0] = ' ';
-			descs[i][1] = obj->ichar;
-			descs[i][2] = ((obj->what_is & ARMOR) && obj->is_protected)
+			inv_descs[i][0] = ' ';
+			inv_descs[i][1] = obj->ichar;
+			inv_descs[i][2] = ((obj->what_is & ARMOR) && obj->is_protected)
 				? '}' : ')';
-			descs[i][3] = ' ';
-			get_desc(obj, descs[i]+4);
-			if ((n = strlen(descs[i])) > maxlen) {
+			inv_descs[i][3] = ' ';
+			get_desc(obj, inv_descs[i]+4);
+			if ((n = strlen(inv_descs[i])) > maxlen) {
 				maxlen = n;
 			}
 		i++;
 		}
 		obj = obj->next_object;
 	}
-	strcpy(descs[i++], press_space);
+	if (dont_wait)
+		strcpy(inv_descs[i++], "--select item--");
+	else
+		strcpy(inv_descs[i++], press_space);
 	if (maxlen < 27) maxlen = 27;
 	col = DCOLS - (maxlen + 2);
 
 	for (row = 0; ((row < i) && (row < DROWS)); row++) {
 		if (row > 0) {
 			for (j = col; j < DCOLS; j++) {
-				descs[row-1][j-col] = (short)mvinch(row, j);
+				inv_descs[row-1][j-col] = (short)mvinch(row, j);
 			}
-			descs[row-1][j-col] = 0;
+			inv_descs[row-1][j-col] = 0;
 		}
-		mvaddstr(row, col, descs[row]);
+		mvaddstr(row, col, inv_descs[row]);
 		clrtoeol();
 	}
 	refresh();
-	wait_for_ack();
+	last_inv_i = i;
+	last_inv_j = j;
+	last_inv_col = col;
+	if (!dont_wait) {
+		wait_for_ack();
+		clear_inventory();
+	}
+}
 
+void clear_inventory(void) {
 	move(0, 0);
 	clrtoeol();
-
-	for (j = 1; ((j < i) && (j < DROWS)); j++) {
-		mvaddstr(j, col, descs[j-1]);
+	for (last_inv_j = 1; ((last_inv_j < last_inv_i) && (last_inv_j < DROWS)); last_inv_j++) {
+		mvaddstr(last_inv_j, last_inv_col, inv_descs[last_inv_j-1]);
 	}
 }
 

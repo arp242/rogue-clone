@@ -69,6 +69,7 @@ boolean save_is_interactive = 1;
 boolean ask_quit = 1;
 boolean no_skull = 0;
 boolean passgo = 0;
+boolean openinv = 0;
 const char *error_file = "rogue.esave";
 const char *byebye_string = "Okay, bye bye!";
 
@@ -300,6 +301,8 @@ static void do_opts(void) {
 				no_skull = 1;
 			} else if (!strncmp(eptr, "passgo", 6)) {
 				passgo = 1;
+			} else if (!strncmp(eptr, "openinv", 7)) {
+				openinv = 1;
 			}
 			while ((*eptr) && (*eptr != ',')) {
 				eptr++;
