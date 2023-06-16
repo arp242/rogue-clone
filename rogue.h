@@ -466,6 +466,7 @@ void	stop_window(void);
 void	byebye(int);
 void	onintr(int);
 void	error_save(int) __dead2;
+unsigned long seed(void);
 
 /* inventory.c */
 void	inventory(const object *, unsigned short);

@@ -46,6 +46,8 @@
  */
 
 #include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include "rogue.h"
 
@@ -71,9 +73,7 @@ boolean flush = 1;
 const char *error_file = "rogue.esave";
 const char *byebye_string = "Okay, bye bye!";
 
-boolean
-init(int argc, char *argv[])
-{
+boolean init(int argc, char *argv[]) {
 	const char *pn;
 
 	pn = md_getenv("USER");
@@ -110,7 +110,7 @@ init(int argc, char *argv[])
 	if (score_only) {
 		put_scores(NULL, 0);
 	}
-	//srandomdev();
+	srand(seed());
 	if (rest_file) {
 		restore(rest_file);
 		return(1);
@@ -126,9 +126,24 @@ init(int argc, char *argv[])
 	return(0);
 }
 
-static void
-player_init(void)
-{
+// https://stackoverflow.com/a/323302
+unsigned long seed(void) {
+	unsigned long a = clock();
+	unsigned long b = time(NULL);
+	unsigned long c = getpid();
+    a=a-b;  a=a-c;  a=a^(c >> 13);
+    b=b-c;  b=b-a;  b=b^(a << 8);
+    c=c-a;  c=c-b;  c=c^(b >> 13);
+    a=a-b;  a=a-c;  a=a^(c >> 12);
+    b=b-c;  b=b-a;  b=b^(a << 16);
+    c=c-a;  c=c-b;  c=c^(b >> 5);
+    a=a-b;  a=a-c;  a=a^(c >> 3);
+    b=b-c;  b=b-a;  b=b^(a << 10);
+    c=c-a;  c=c-b;  c=c^(b >> 15);
+    return c;
+}
+
+static void player_init(void) {
 	object *obj;
 
 	rogue.pack.next_object = NULL;
