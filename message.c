@@ -59,9 +59,7 @@ const char *more = "-more-";
 static void pad(const char *, short);
 static void save_screen(void);
 
-void
-message(const char *msg, boolean intrpt)
-{
+void message(const char *msg, boolean intrpt) {
 	cant_int = 1;
 
 	if (!save_is_interactive) {
@@ -69,8 +67,7 @@ message(const char *msg, boolean intrpt)
 	}
 	if (intrpt) {
 		interrupted = 1;
-		if (flush)
-			md_slurp();
+		md_slurp();
 	}
 
 	if (!msg_cleared) {

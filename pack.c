@@ -262,13 +262,15 @@ next_avail_ichar(void)
 	return('?');
 }
 
-void
-wait_for_ack(void)
-{
+void wait_for_ack(void) {
 	if (!isatty(0) || !isatty(1))
 	    return;
-	while (rgetchar() != ' ')
-		;
+	int c;
+	while (true) {
+		c = rgetchar();
+		if (c == ' ' || c == 0x1b || c == 0x0d)
+			break;
+	}
 }
 
 short

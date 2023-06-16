@@ -51,21 +51,13 @@ room rooms[MAXROOMS];
 
 static boolean rooms_visited[MAXROOMS];
 
-#define NOPTS 8
+#define NOPTS 6
 static const struct option {
 	const char *prompt;
 	boolean is_bool;
 	char **strval;
 	boolean *bval;
 } options[NOPTS] = {
-	{
-		"Flush typeahead during battle (\"flush\"): ",
-		1, NULL, &flush
-	},
-	{
-		"Show position only at end of run (\"jump\"): ",
-		1, NULL, &jump
-	},
 	{
 		"Follow turnings in passageways (\"passgo\"): ",
 		1, NULL, &passgo
@@ -506,9 +498,7 @@ get_oth_room(short rn, short *row, short *col)
 	return(0);
 }
 
-void
-edit_opts(void)
-{
+void edit_opts(void) {
 	char save[NOPTS+1][DCOLS];
 	short i, j;
 	short ch;

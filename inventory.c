@@ -205,9 +205,7 @@ static boolean get_com_id(int *, short);
 static boolean pr_com_id(int);
 static boolean pr_motion_char(int);
 
-void
-inventory(const object *pack, unsigned short mask)
-{
+void inventory(const object *pack, unsigned short mask) {
 	object *obj;
 	short i = 0, j, maxlen = 0, n;
 	char descs[MAX_PACK_COUNT+1][DCOLS];
@@ -259,9 +257,7 @@ inventory(const object *pack, unsigned short mask)
 	}
 }
 
-void
-id_com(void)
-{
+void id_com(void) {
 	int ch = 0;
 	short i, j, k;
 

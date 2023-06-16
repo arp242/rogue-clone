@@ -48,7 +48,6 @@
 #include "rogue.h"
 
 short m_moves = 0;
-boolean jump = 0;
 const char you_can_move_again[] = "you can move again";
 
 static boolean can_turn(short, short);
@@ -58,9 +57,7 @@ static void heal(void);
 static boolean next_to_something(int, int);
 static void turn_passage(short, boolean);
 
-short
-one_move_rogue(short dirch, short pickup)
-{
+short one_move_rogue(short dirch, short pickup) {
 	short row, col;
 	object *obj;
 	char desc[DCOLS];
@@ -121,10 +118,7 @@ one_move_rogue(short dirch, short pickup)
 	}
 	mvaddch(rogue.row, rogue.col, get_dungeon_char(rogue.row, rogue.col));
 	mvaddch(row, col, rogue.fchar);
-
-	if (!jump) {
-		refresh();
-	}
+	refresh();
 	rogue.row = row;
 	rogue.col = col;
 	if (dungeon[row][col] & OBJECT) {

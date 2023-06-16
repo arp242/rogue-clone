@@ -41,6 +41,18 @@ sad about my youth...)
 I should perhaps add numpad keys as an alternative, but my laptop (and many
 laptops) doesn't have numpad, so meh.
 
+You can set options with `o`; these are *not* saved, but you can use the
+`ROGUEOPTS` environment variable, which takes a comma separated list of options:
+
+| Name            | Default                   | Description                                         |
+| ----            | -------                   | -----------                                         |
+| file            | ~/.local/share/rogue/save | Save file                                           |
+| name=           | $USER                     | Character name                                      |
+| noaskquit       | (not set)                 | Don't ask confirmation on SIGQUIT (no effect for Q) |
+| noskull, notomb | (not set)                 | Don't display headstone after death                 |
+| fruit=          | slime-mold                | Name of the "fruit" food                            |
+| passgo          | (not set)                 | Run around corners with Shift                       |
+
 Changes
 -------
 The core game is mostly unchanged, aside from a few small things:
@@ -57,6 +69,9 @@ The core game is mostly unchanged, aside from a few small things:
   `./rogue.dump` in the current directory, and this will be loaded automatically
   on startup if it exists so you don't need to use load it manually with
   `rogue ~/.local/share/rogue/save`.
+
+- Also allow Esc and Enter to clear "--press space to continue--" prompts.
+
 
 Sources
 -------

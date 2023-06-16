@@ -69,7 +69,6 @@ boolean save_is_interactive = 1;
 boolean ask_quit = 1;
 boolean no_skull = 0;
 boolean passgo = 0;
-boolean flush = 1;
 const char *error_file = "rogue.esave";
 const char *byebye_string = "Okay, bye bye!";
 
@@ -275,9 +274,7 @@ do_args(int argc, char *argv[])
 	}
 }
 
-static void
-do_opts(void)
-{
+static void do_opts(void) {
 	char *eptr;
 
 	if ((eptr = md_getenv("ROGUEOPTS")) != NULL) {
@@ -294,20 +291,15 @@ do_opts(void)
 			} else if (!strncmp(eptr, "file=", 5)) {
 				eptr += 5;
 				env_get_value(&save_file, eptr, 0);
-			} else if (!strncmp(eptr, "jump", 4)) {
-				jump = 1;
 			} else if (!strncmp(eptr, "name=", 5)) {
 				eptr += 5;
 				env_get_value(&nick_name, eptr, 0);
 			} else if (!strncmp(eptr, "noaskquit", 9)) {
 				ask_quit = 0;
-			} else if (!strncmp(eptr, "noskull", 7) ||
-					!strncmp(eptr,"notomb", 6)) {
+			} else if (!strncmp(eptr, "noskull", 7) || !strncmp(eptr,"notomb", 6)) {
 				no_skull = 1;
 			} else if (!strncmp(eptr, "passgo", 6)) {
 				passgo = 1;
-			} else if (!strncmp(eptr, "noflush", 7)) {
-				flush = 0;
 			}
 			while ((*eptr) && (*eptr != ',')) {
 				eptr++;
