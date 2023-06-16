@@ -194,7 +194,7 @@ void restore(const char *fname) {
 	r_read(fp, (char *) &max_level, sizeof(max_level));
 	read_string(hunger_str, fp, sizeof hunger_str);
 
-	strlcpy(tbuf, login_name, sizeof tbuf);
+	snprintf(tbuf, 39, "%s", login_name);
 	read_string(login_name, fp, sizeof login_name);
 	if (strcmp(tbuf, login_name)) {
 		clean_up("you're not the original player");

@@ -9,7 +9,7 @@ LDFLAGS += -lncurses ${STATIC}
 
 SRC = hit.c init.c inventory.c level.c machdep.c main.c message.c monster.c \
       move.c object.c pack.c play.c random.c ring.c room.c save.c score.c \
-      spec_hit.c throw.c trap.c use.c zap.c strlcpy.c
+      spec_hit.c throw.c trap.c use.c zap.c
 OBJ = ${SRC:.c=.o}
 
 .PHONY: all clean install uninstall
