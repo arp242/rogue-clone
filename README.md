@@ -83,6 +83,8 @@ The core game is unchanged, with just a few small quality of life enhancements:
 
 - Also allow Esc and Enter to clear "--press space to continue--" prompts.
 
+- Some more feedback in prompts.
+
 - Remove `!` command to drop back to shell; it didn't work on Windows and it was
   easier to just remove the command. It's pretty useless in modern context
   anyway.

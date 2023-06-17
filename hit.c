@@ -311,19 +311,18 @@ mon_damage(object *monster, short damage)
 	return(1);
 }
 
-void
-fight(boolean to_the_death)
-{
+void fight(boolean to_the_death) {
 	short ch, c, d;
 	short row, col;
 	boolean first_miss = 1;
 	short possible_damage;
 	object *monster;
 
+	message("fight direction? ", 0);
 	while (!is_direction(ch = rgetchar(), &d)) {
 		sound_bell();
 		if (first_miss) {
-			message("direction?", 0);
+			message("direction? ", 0);
 			first_miss = 0;
 		}
 	}

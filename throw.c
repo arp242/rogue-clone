@@ -51,15 +51,14 @@ static void flop_weapon(object *, short, short);
 static object *get_thrown_at_monster(object *, short, short *, short *);
 static boolean throw_at_monster(object *, object *);
 
-void
-throw(void)
-{
+void throw(void) {
 	short wch, d;
 	boolean first_miss = 1;
 	object *weapon;
 	short dir, row, col;
 	object *monster;
 
+	message("throw direction? ", 0);
 	while (!is_direction(dir = rgetchar(), &d)) {
 		sound_bell();
 		if (first_miss) {

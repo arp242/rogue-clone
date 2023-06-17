@@ -306,12 +306,11 @@ can_move(short row1, short col1, short row2, short col2)
 	return(1);
 }
 
-void
-move_onto(void)
-{
+void move_onto(void) {
 	short ch, d;
 	boolean first_miss = 1;
 
+	message("move direction? ", 0);
 	while (!is_direction(ch = rgetchar(), &d)) {
 		sound_bell();
 		if (first_miss) {

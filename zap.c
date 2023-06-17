@@ -54,15 +54,14 @@ static void zap_monster(object *, unsigned short);
 
 boolean wizard = 0;
 
-void
-zapp(void)
-{
+void zapp(void) {
 	short wch;
 	boolean first_miss = 1;
 	object *wand;
 	short dir, d, row, col;
 	object *monster;
 
+	message("zap direction? ", 0);
 	while (!is_direction(dir = rgetchar(), &d)) {
 		sound_bell();
 		if (first_miss) {
