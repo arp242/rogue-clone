@@ -54,9 +54,7 @@ static int to_hit(const object *);
 static object *fight_monster = NULL;
 char hit_message[HIT_MESSAGE_SIZE] = "";
 
-void
-mon_hit(object *monster)
-{
+void mon_hit(object *monster) {
 	short damage, hit_chance;
 	const char *mn;
 	float minus;
@@ -115,9 +113,7 @@ mon_hit(object *monster)
 	}
 }
 
-void
-rogue_hit(object *monster, boolean force_hit)
-{
+void rogue_hit(object *monster, boolean force_hit) {
 	short damage, hit_chance;
 
 	if (monster) {
@@ -152,9 +148,7 @@ RET:	check_gold_seeker(monster);
 	}
 }
 
-void
-rogue_damage(short d, object *monster, short other)
-{
+void rogue_damage(short d, object *monster, short other) {
 	if (d >= rogue.hp_current) {
 		rogue.hp_current = 0;
 		print_stats(STAT_HP);
@@ -166,9 +160,7 @@ rogue_damage(short d, object *monster, short other)
 	}
 }
 
-int
-get_damage(const char *ds, boolean r)
-{
+int get_damage(const char *ds, boolean r) {
 	int i = 0, j, n, d, total = 0;
 
 	while (ds[i]) {
@@ -193,9 +185,7 @@ get_damage(const char *ds, boolean r)
 	return(total);
 }
 
-static int
-get_w_damage(const object *obj)
-{
+static int get_w_damage(const object *obj) {
 	char new_damage[12];
 	int t_hit, damage;
 	int i = 0;
@@ -213,9 +203,7 @@ get_w_damage(const object *obj)
 	return(get_damage(new_damage, 1));
 }
 
-int
-get_number(const char *s)
-{
+int get_number(const char *s) {
 	int i = 0;
 	int total = 0;
 
@@ -226,9 +214,7 @@ get_number(const char *s)
 	return(total);
 }
 
-long
-lget_number(const char *s)
-{
+long lget_number(const char *s) {
 	short i = 0;
 	long total = 0;
 
@@ -239,18 +225,14 @@ lget_number(const char *s)
 	return(total);
 }
 
-static int
-to_hit(const object *obj)
-{
+static int to_hit(const object *obj) {
 	if (!obj) {
 		return(1);
 	}
 	return(get_number(obj->damage) + obj->hit_enchant);
 }
 
-static short
-damage_for_strength(void)
-{
+static short damage_for_strength(void) {
 	short strength;
 
 	strength = rogue.str_current + add_strength;
@@ -279,9 +261,7 @@ damage_for_strength(void)
 	return(8);
 }
 
-boolean
-mon_damage(object *monster, short damage)
-{
+boolean mon_damage(object *monster, short damage) {
 	const char *mn;
 	short row, col;
 
@@ -361,9 +341,7 @@ void fight(boolean to_the_death) {
 	}
 }
 
-void
-get_dir_rc(short dir, short *row, short *col, short allow_off_screen)
-{
+void get_dir_rc(short dir, short *row, short *col, short allow_off_screen) {
 	switch(dir) {
 	case LEFT:
 		if (allow_off_screen || (*col > 0)) {
@@ -412,9 +390,7 @@ get_dir_rc(short dir, short *row, short *col, short allow_off_screen)
 	}
 }
 
-short
-get_hit_chance(const object *weapon)
-{
+short get_hit_chance(const object *weapon) {
 	short hit_chance;
 
 	hit_chance = 40;
@@ -423,9 +399,7 @@ get_hit_chance(const object *weapon)
 	return(hit_chance);
 }
 
-short
-get_weapon_damage(const object *weapon)
-{
+short get_weapon_damage(const object *weapon) {
 	short damage;
 
 	damage = get_w_damage(weapon);
@@ -434,9 +408,7 @@ get_weapon_damage(const object *weapon)
 	return(damage);
 }
 
-void
-s_con_mon(object *monster)
-{
+void s_con_mon(object *monster) {
 	if (con_mon) {
 		monster->m_flags |= CONFUSED;
 		monster->moves_confused += get_rand(12, 22);

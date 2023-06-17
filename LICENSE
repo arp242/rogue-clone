@@ -17,7 +17,10 @@ But the manual also mentions it's "public domain", so idk...
 BSD license:
 
     Copyright (c) 1988, 1993
-    The Regents of the University of California.  All rights reserved.
+      The Regents of the University of California.  All rights reserved.
+
+    This code is derived from software contributed to Berkeley by
+    Timothy C. Stoehr.
 
 	Redistribution and use in source and binary forms, with or without
 	modification, are permitted provided that the following conditions are met:

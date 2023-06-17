@@ -59,9 +59,7 @@ static void nickize(char *, const char *, const char *);
 static void sell_pack(void);
 static void sf_error(const char *) __dead2;
 
-void
-killed_by(const object *monster, short other)
-{
+void killed_by(const object *monster, short other) {
 	char buf[128];
 
 	md_ignore_signals();
@@ -126,9 +124,7 @@ killed_by(const object *monster, short other)
 	put_scores(monster, other);
 }
 
-void
-win(void)
-{
+void win(void) {
 	unwield(rogue.weapon);		/* disarm and relax */
 	unwear(rogue.armor);
 	un_put_on(rogue.left_ring);
@@ -150,9 +146,7 @@ win(void)
 	put_scores(NULL, WIN);
 }
 
-void
-quit(boolean from_intrpt)
-{
+void quit(boolean from_intrpt) {
 	char buf[128];
 	short i, orow, ocol;
 	boolean mc;
@@ -193,9 +187,7 @@ quit(boolean from_intrpt)
 	killed_by(NULL, QUIT);
 }
 
-void
-put_scores(const object *monster, short other)
-{
+void put_scores(const object *monster, short other) {
 	short i, n, rank = 10, x, ne = 0;
 	char scores[10][82];
 	char n_names[10][30];
@@ -313,10 +305,10 @@ put_scores(const object *monster, short other)
 	clean_up("");
 }
 
-static void
-insert_score(char scores[][82], char n_names[][30], const char *n_name,
-	     short rank, short n, const object *monster, short other)
-{
+static void insert_score(
+	char scores[][82], char n_names[][30], const char *n_name,
+	short rank, short n, const object *monster, short other
+) {
 	short i;
 	char buf[128];
 
@@ -372,19 +364,11 @@ insert_score(char scores[][82], char n_names[][30], const char *n_name,
 	strcpy(n_names[rank], n_name);
 }
 
-boolean
-is_vowel(short ch)
-{
-	return( (ch == 'a') ||
-		(ch == 'e') ||
-		(ch == 'i') ||
-		(ch == 'o') ||
-		(ch == 'u') );
+boolean is_vowel(short ch) {
+	return((ch == 'a') || (ch == 'e') || (ch == 'i') || (ch == 'o') || (ch == 'u'));
 }
 
-static void
-sell_pack(void)
-{
+static void sell_pack(void) {
 	object *obj;
 	short row = 2, val;
 	char buf[DCOLS];
@@ -415,9 +399,7 @@ sell_pack(void)
 	message("", 0);
 }
 
-static int
-get_value(const object *obj)
-{
+static int get_value(const object *obj) {
 	short wc;
 	int val;
 
@@ -463,9 +445,7 @@ get_value(const object *obj)
 	return(val);
 }
 
-static void
-id_all(void)
-{
+static void id_all(void) {
 	short i;
 
 	for (i = 0; i < SCROLS; i++) {
@@ -485,9 +465,7 @@ id_all(void)
 	}
 }
 
-static int
-name_cmp(char *s1, const char *s2)
-{
+static int name_cmp(char *s1, const char *s2) {
 	short i = 0;
 	int r;
 
@@ -500,9 +478,7 @@ name_cmp(char *s1, const char *s2)
 	return(r);
 }
 
-void
-xxxx(char *buf, short n)
-{
+void xxxx(char *buf, short n) {
 	short i;
 	unsigned char c;
 
@@ -515,9 +491,7 @@ xxxx(char *buf, short n)
 	}
 }
 
-long
-xxx(boolean st)
-{
+long xxx(boolean st) {
 	static long f, s;
 	long r;
 
@@ -532,9 +506,7 @@ xxx(boolean st)
 	return(r);
 }
 
-static void
-nickize(char *buf, const char *score, const char *n_name)
-{
+static void nickize(char *buf, const char *score, const char *n_name) {
 	short i = 15, j;
 
 	if (!n_name[0]) {
@@ -557,18 +529,14 @@ nickize(char *buf, const char *score, const char *n_name)
 	}
 }
 
-static void
-center(short row, const char *buf)
-{
+static void center(short row, const char *buf) {
 	short margin;
 
 	margin = ((DCOLS - strlen(buf)) / 2);
 	mvaddstr(row, margin, buf);
 }
 
-static void
-sf_error(const char *msg)
-{
+static void sf_error(const char *msg) {
 	md_lock(0);
 	message("", 1);
 	if (msg != NULL)

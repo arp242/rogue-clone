@@ -68,9 +68,7 @@ static char save_name[80];
 
 char *save_file = NULL;
 
-void
-save_game(void)
-{
+void save_game(void) {
 	char fname[64];
 
 	if (!get_input_line("file name?", save_file, fname,
@@ -82,9 +80,7 @@ save_game(void)
 	save_into_file(fname);
 }
 
-void
-save_into_file(const char *sfile)
-{
+void save_into_file(const char *sfile) {
 	FILE *fp;
 	int file_id;
 	char *name_buffer;
@@ -166,9 +162,7 @@ save_into_file(const char *sfile)
 	}
 }
 
-static void
-del_save_file(void)
-{
+static void del_save_file(void) {
 	if (!save_name[0])
 		return;
 	md_df(save_name);
@@ -238,7 +232,7 @@ void restore(const char *fname) {
 		clean_up("extra characters in file");
 	}
 
-	md_gfmt(fname, &mod_time);	/* get file modification time */
+	md_gfmt(fname, &mod_time);	// get file modification time
 
 	if (has_been_touched(&saved_time, &mod_time)) {
 		clear();
@@ -253,9 +247,7 @@ void restore(const char *fname) {
 	fclose(fp);
 }
 
-static void
-write_pack(const object *pack, FILE *fp)
-{
+static void write_pack(const object *pack, FILE *fp) {
 	object t;
 
 	while ((pack = pack->next_object) != NULL) {
@@ -265,9 +257,7 @@ write_pack(const object *pack, FILE *fp)
 	r_write(fp, (const char *) &t, sizeof(object));
 }
 
-static void
-read_pack(object *pack, FILE *fp, boolean is_rogue)
-{
+static void read_pack(object *pack, FILE *fp, boolean is_rogue) {
 	object read_obj, *new_obj;
 
 	for (;;) {
@@ -293,9 +283,7 @@ read_pack(object *pack, FILE *fp, boolean is_rogue)
 	}
 }
 
-static void
-rw_dungeon(FILE *fp, boolean rw)
-{
+static void rw_dungeon(FILE *fp, boolean rw) {
 	short i, j;
 	char buf[DCOLS];
 
@@ -316,9 +304,7 @@ rw_dungeon(FILE *fp, boolean rw)
 	}
 }
 
-static void
-rw_id(struct id id_table[], FILE *fp, int n, boolean wr)
-{
+static void rw_id(struct id id_table[], FILE *fp, int n, boolean wr) {
 	short i;
 
 	for (i = 0; i < n; i++) {
@@ -336,9 +322,7 @@ rw_id(struct id id_table[], FILE *fp, int n, boolean wr)
 	}
 }
 
-static void
-write_string(char *s, FILE *fp)
-{
+static void write_string(char *s, FILE *fp) {
 	short n;
 
 	n = strlen(s) + 1;
@@ -347,9 +331,7 @@ write_string(char *s, FILE *fp)
 	r_write(fp, s, n);
 }
 
-static void
-read_string(char *s, FILE *fp, size_t len)
-{
+static void read_string(char *s, FILE *fp, size_t len) {
 	short n;
 
 	r_read(fp, (char *) &n, sizeof(short));
@@ -362,9 +344,7 @@ read_string(char *s, FILE *fp, size_t len)
 	s[n-1] = 0;
 }
 
-static void
-rw_rooms(FILE *fp, boolean rw)
-{
+static void rw_rooms(FILE *fp, boolean rw) {
 	short i;
 
 	for (i = 0; i < MAXROOMS; i++) {
@@ -373,17 +353,13 @@ rw_rooms(FILE *fp, boolean rw)
 	}
 }
 
-static void
-r_read(FILE *fp, char *buf, int n)
-{
+static void r_read(FILE *fp, char *buf, int n) {
 	if (fread(buf, sizeof(char), n, fp) != (unsigned)n) {
 		clean_up("read() failed, don't know why");
 	}
 }
 
-static void
-r_write(FILE *fp, const char *buf, int n)
-{
+static void r_write(FILE *fp, const char *buf, int n) {
 	if (!write_failed) {
 		if (fwrite(buf, sizeof(char), n, fp) != (unsigned)n) {
 			message("write() failed, don't know why", 0);
@@ -393,10 +369,7 @@ r_write(FILE *fp, const char *buf, int n)
 	}
 }
 
-static boolean
-has_been_touched(const struct rogue_time *saved_time,
-		 const struct rogue_time *mod_time)
-{
+static boolean has_been_touched(const struct rogue_time *saved_time, const struct rogue_time *mod_time) {
 	if (saved_time->year < mod_time->year) {
 		return(1);
 	} else if (saved_time->year > mod_time->year) {

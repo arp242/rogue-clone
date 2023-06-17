@@ -51,40 +51,46 @@ room rooms[MAXROOMS];
 
 static boolean rooms_visited[MAXROOMS];
 
-#define NOPTS 7
+#define NOPTS 8
 static const struct option {
 	const char *prompt;
-	boolean is_bool;
-	char **strval;
-	boolean *bval;
+	boolean    is_bool;
+	boolean    is_int;
+	char       **strval;
+	boolean    *bval;
+	int        *ival;
 } options[NOPTS] = {
 	{
 		"Follow turnings in passageways (\"passgo\"): ",
-		1, NULL, &passgo
+		1, 0, NULL, &passgo, NULL,
 	},
 	{
 		"Don't print skull when killed (\"noskull\" or \"notombstone\"): ",
-		1, NULL, &no_skull
+		1, 0, NULL, &no_skull, NULL,
 	},
 	{
 		"Ask player before saying 'Okay, bye-bye!' (\"askquit\"): ",
-		1, NULL, &ask_quit
+		1, 0, NULL, &ask_quit, NULL,
 	},
 	{
 		"Automatically open inventory on w, W, P, etc. (\"openinv\"): ",
-		1, NULL, &openinv
+		1, 0, NULL, &openinv, NULL,
+	},
+	{
+		"Low health warning below (\"lowhealth\"): ",
+		0, 1, NULL, NULL, &low_health_warn,
 	},
 	{
 		"Name (\"name\"): ",
-		0, &nick_name, NULL
+		0, 0, &nick_name, NULL, NULL,
 	},
 	{
 		"Fruit (\"fruit\"): ",
-		0, &fruit, NULL
+		0, 0, &fruit, NULL, NULL,
 	},
 	{
 		"Save file (\"file\"): ",
-		0, &save_file, NULL
+		0, 0, &save_file, NULL, NULL,
 	},
 };
 
@@ -94,9 +100,7 @@ static void opt_go(int);
 static void opt_show(int);
 static void visit_rooms(int);
 
-void
-light_up_room(int rn)
-{
+void light_up_room(int rn) {
 	short i, j;
 
 	if (!blind) {
@@ -121,9 +125,7 @@ light_up_room(int rn)
 	}
 }
 
-void
-light_passage(int row, int col)
-{
+void light_passage(int row, int col) {
 	short i, j, i_end, j_end;
 
 	if (blind) {
@@ -141,9 +143,7 @@ light_passage(int row, int col)
 	}
 }
 
-void
-darken_room(short rn)
-{
+void darken_room(short rn) {
 	short i, j;
 
 	for (i = rooms[rn].top_row + 1; i < rooms[rn].bottom_row; i++) {
@@ -165,9 +165,7 @@ darken_room(short rn)
 	}
 }
 
-char
-get_dungeon_char(int row, int col)
-{
+char get_dungeon_char(int row, int col) {
 	unsigned short mask = dungeon[row][col];
 
 	if (mask & MONSTER) {
@@ -213,9 +211,7 @@ get_dungeon_char(int row, int col)
 	return(' ');
 }
 
-char
-get_mask_char(unsigned short mask)
-{
+char get_mask_char(unsigned short mask) {
 		switch(mask) {
 		case SCROL:
 			return('?');
@@ -240,9 +236,7 @@ get_mask_char(unsigned short mask)
 		}
 }
 
-void
-gr_row_col(short *row, short *col, unsigned short mask)
-{
+void gr_row_col(short *row, short *col, unsigned short mask) {
 	short rn;
 	short r, c;
 
@@ -260,9 +254,7 @@ gr_row_col(short *row, short *col, unsigned short mask)
 	*col = c;
 }
 
-short
-gr_room(void)
-{
+short gr_room(void) {
 	short i;
 
 	do {
@@ -272,9 +264,7 @@ gr_room(void)
 	return(i);
 }
 
-short
-party_objects(short rn)
-{
+short party_objects(short rn) {
 	short i, j, nf = 0;
 	object *obj;
 	short n, N, row, col;
@@ -563,6 +553,7 @@ CH:
 				sound_bell();
 				break;
 			}
+
 			j = 0;
 			if ((ch == '\010') || ((ch >= ' ') && (ch <= '~'))) {
 				opt_erase(i);
@@ -581,12 +572,13 @@ CH:
 					ch = rgetchar();
 				} while ((ch != '\012') && (ch != '\015') && (ch != '\033'));
 				if (j != 0) {
-					/*
-					 * We rely on the option string being
-					 * allocated to hold MAX_OPT_LEN+2
-					 * bytes. This is arranged in init.c.
-					 */
-					strcpy(*(options[i].strval), buf);
+					// We rely on the option string being allocated to hold
+					// MAX_OPT_LEN+2 bytes. This is arranged in init.c.
+					if (options[i].is_int) {
+						*options[i].ival = parse_num(buf);
+					}
+					else
+						strcpy(*(options[i].strval), buf);
 				}
 				opt_show(i);
 				goto CH;
@@ -611,25 +603,25 @@ static void opt_show(int i) {
 
 	opt_erase(i);
 
-	if (opt->is_bool) {
+	if (opt->is_bool)
 		s = *(opt->bval) ? "True" : "False";
-	} else {
-		s = *(opt->strval);
+	else if (opt->is_int) {
+		char buf[10];
+		sprintf(buf, "%d", *opt->ival);
+		s = &buf[0];
 	}
+	else
+		s = *(opt->strval);
 	addstr(s);
 }
 
-static void
-opt_erase(int i)
-{
+static void opt_erase(int i) {
 	const struct option *opt = &options[i];
 
 	mvaddstr(i, 0, opt->prompt);
 	clrtoeol();
 }
 
-static void
-opt_go(int i)
-{
+static void opt_go(int i) {
 	move(i, strlen(options[i].prompt));
 }

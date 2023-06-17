@@ -122,10 +122,9 @@ check_message(void)
 	msg_cleared = 1;
 }
 
-short
-get_input_line(const char *prompt, const char *insert, char *buf,
-    const char *if_cancelled, boolean add_blank, boolean do_echo)
-{
+short get_input_line(const char *prompt, const char *insert, char *buf,
+    const char *if_cancelled, boolean add_blank, boolean do_echo
+) {
 	short ch;
 	short i = 0, n;
 
@@ -178,9 +177,7 @@ get_input_line(const char *prompt, const char *insert, char *buf,
 	return(i);
 }
 
-int
-rgetchar(void)
-{
+int rgetchar(void) {
 	int ch;
 
 	for(;;) {
@@ -211,9 +208,7 @@ Level: 99 Gold: 999999 Hp: 999(999) Str: 99(99) Arm: 99 Exp: 21/10000000 Hungry
 0    5    1    5    2    5    3    5    4    5    5    5    6    5    7    5
 */
 
-void
-print_stats(int stat_mask)
-{
+void print_stats(int stat_mask) {
 	char buf[16];
 	boolean label;
 	int row = DROWS - 1;
@@ -224,7 +219,7 @@ print_stats(int stat_mask)
 		if (label) {
 			mvaddstr(row, 0, "Level: ");
 		}
-		/* max level taken care of in make_level() */
+		// max level taken care of in make_level()
 		sprintf(buf, "%d", cur_level);
 		mvaddstr(row, 7, buf);
 		pad(buf, 2);
@@ -241,15 +236,21 @@ print_stats(int stat_mask)
 		pad(buf, 6);
 	}
 	if (stat_mask & STAT_HP) {
-		if (label) {
-			mvaddstr(row, 23, "Hp: ");
-		}
+		if (rogue.hp_current < low_health_warn)
+			attron(A_BOLD | A_REVERSE);
+		// Always print this label, to apply or clear standout (could probably
+		// just always print this entire line without this stat_mask business;
+		// terminals are so fast compared to 1980 terminals it probably doesn't
+		// matter much).
+		mvaddstr(row, 23, "Hp: ");
 		if (rogue.hp_max > MAX_HP) {
 			rogue.hp_current -= (rogue.hp_max - MAX_HP);
 			rogue.hp_max = MAX_HP;
 		}
 		sprintf(buf, "%d(%d)", rogue.hp_current, rogue.hp_max);
 		mvaddstr(row, 27, buf);
+		if (rogue.hp_current < low_health_warn)
+			attroff(A_BOLD | A_REVERSE);
 		pad(buf, 8);
 	}
 	if (stat_mask & STAT_STRENGTH) {
@@ -297,9 +298,7 @@ print_stats(int stat_mask)
 	refresh();
 }
 
-static void
-pad(const char *s, short n)
-{
+static void pad(const char *s, short n) {
 	short i;
 
 	for (i = strlen(s); i < n; i++) {
@@ -307,9 +306,7 @@ pad(const char *s, short n)
 	}
 }
 
-static void
-save_screen(void)
-{
+static void save_screen(void) {
 	FILE *fp;
 	short i, j;
 	char buf[DCOLS+2];
@@ -336,22 +333,16 @@ save_screen(void)
 	}
 }
 
-void
-sound_bell(void)
-{
+void sound_bell(void) {
 	putchar(7);
 	fflush(stdout);
 }
 
-boolean
-is_digit(short ch)
-{
+boolean is_digit(short ch) {
 	return((ch >= '0') && (ch <= '9'));
 }
 
-int
-r_index(const char *str, int ch, boolean last)
-{
+int r_index(const char *str, int ch, boolean last) {
 	int i = 0;
 
 	if (last) {

@@ -62,6 +62,7 @@ static boolean init_curses = 0;
 
 char login_name[MAX_OPT_LEN];
 char *nick_name = NULL;
+int low_health_warn = 0;
 boolean cant_int = 0;
 boolean did_int = 0;
 boolean score_only;
@@ -249,9 +250,7 @@ void error_save(__unused int sig) {
 	clean_up("");
 }
 
-static void
-do_args(int argc, char *argv[])
-{
+static void do_args(int argc, char *argv[]) {
 	short i, j;
 
 	for (i = 1; i < argc; i++) {
@@ -289,6 +288,11 @@ static void do_opts(void) {
 			} else if (!strncmp(eptr, "name=", 5)) {
 				eptr += 5;
 				env_get_value(&nick_name, eptr, 0);
+			} else if (!strncmp(eptr, "lowhealth=", 5)) {
+				eptr += 10;
+				char *buf = NULL;
+				env_get_value(&buf, eptr, 0);
+				low_health_warn = parse_num(buf);
 			} else if (!strncmp(eptr, "noaskquit", 9)) {
 				ask_quit = 0;
 			} else if (!strncmp(eptr, "noskull", 7) || !strncmp(eptr,"notomb", 6)) {
@@ -314,9 +318,16 @@ static void do_opts(void) {
 	init_str(&fruit, "slime-mold");
 }
 
-static void
-env_get_value(char **s, char *e, boolean add_blank)
-{
+int parse_num(char *buf) {
+	char *end;
+	long result = strtol(buf, &end, 10);
+	if (*end) {
+		clean_up("not a number");
+	}
+	return result;
+}
+
+static void env_get_value(char **s, char *e, boolean add_blank) {
 	short i = 0;
 	const char *t;
 
@@ -342,9 +353,7 @@ env_get_value(char **s, char *e, boolean add_blank)
 	(*s)[i] = '\0';
 }
 
-static void
-init_str(char **str, const char *dflt)
-{
+static void init_str(char **str, const char *dflt) {
 	if (!(*str)) {
 		/* note: edit_opts() in room.c depends on this size */
 		*str = md_malloc(MAX_OPT_LEN + 2);

@@ -734,12 +734,8 @@ hide_boxed_passage(short row1, short col1, short row2, short col2, short n)
 	}
 }
 
-/*
- * try not to put in this room
- */
-void
-put_player(short nr)
-{
+// try not to put in this room
+void put_player(short nr) {
 	short rn = nr, misses;
 	short row, col;
 
@@ -769,9 +765,7 @@ put_player(short nr)
 	mvaddch(rogue.row, rogue.col, rogue.fchar);
 }
 
-boolean
-drop_check(void)
-{
+boolean drop_check(void) {
 	if (wizard) {
 		return(1);
 	}
@@ -786,9 +780,7 @@ drop_check(void)
 	return(0);
 }
 
-boolean
-check_up(void)
-{
+boolean check_up(void) {
 	if (!wizard) {
 		if (!(dungeon[rogue.row][rogue.col] & STAIRS)) {
 			message("I see no way up", 0);

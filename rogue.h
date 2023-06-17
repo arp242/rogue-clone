@@ -325,15 +325,15 @@ typedef struct rm room;
 #define MAX_STRENGTH 99
 #define LAST_DUNGEON 99
 
-#define STAT_LEVEL 01
-#define STAT_GOLD 02
-#define STAT_HP 04
-#define STAT_STRENGTH 010
-#define STAT_ARMOR 020
-#define STAT_EXP 040
-#define STAT_HUNGER 0100
-#define STAT_LABEL 0200
-#define STAT_ALL 0377
+#define STAT_LEVEL      01
+#define STAT_GOLD       02
+#define STAT_HP         04
+#define STAT_STRENGTH  010
+#define STAT_ARMOR     020
+#define STAT_EXP       040
+#define STAT_HUNGER   0100
+#define STAT_LABEL    0200
+#define STAT_ALL      0377
 
 #define PARTY_TIME 10	/* one party somewhere in each 10 level span */
 
@@ -467,6 +467,7 @@ void	byebye(int);
 void	onintr(int);
 void	error_save(int) __dead2;
 unsigned long seed(void);
+int		parse_num(char *);
 
 /* inventory.c */
 void	inventory(const object *, unsigned short, short);
@@ -718,6 +719,7 @@ extern	const char   *const m_names[];
 extern	const char   *more;
 extern	const char   *new_level_message;
 extern	char   *nick_name;
+extern  int    low_health_warn;
 extern	const char   *press_space;
 extern	char   *save_file;
 extern	const char   you_can_move_again[];

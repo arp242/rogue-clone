@@ -11,6 +11,9 @@ This is the simplest rogue-like game that I know; there are no races, classes,
 attributes, or many of the features you get in Angband, Dungeon Crawl, etc. This
 is a feature! Sometimes you just want to play a simple game.
 
+[The roguelike archive]: https://britzl.github.io/roguearchive/
+[Wikipedia]: https://en.wikipedia.org/wiki/Rogue_(video_game)
+
 Usage
 -----
 To compile, simply using `make` should work on most systems; you will need
@@ -52,15 +55,17 @@ I'm not sure what Shift+6 sends on a numpad – I don't have one to test).
 You can set options with `o`; these are *not* saved, but you can use the
 `ROGUEOPTS` environment variable, which takes a comma separated list of options:
 
-| Name            | Default                   | Description                                         |
-| ----            | -------                   | -----------                                         |
-| file            | ~/.local/share/rogue/save | Save file                                           |
-| name=           | $USER                     | Character name                                      |
-| noaskquit       | (not set)                 | Don't ask confirmation on SIGQUIT (no effect for Q) |
-| noskull, notomb | (not set)                 | Don't display headstone after death                 |
-| fruit=          | slime-mold                | Name of the "fruit" food                            |
-| passgo          | (not set)                 | Run around corners with Shift                       |
-| openinv         | (not set)                 | Automatically open inventory on w, W, P, etc.       |
+| Name            | Default                   | Description                                               |
+| ----            | -------                   | -----------                                               |
+| file            | ~/.local/share/rogue/save | Save file                                                 |
+| name=           | $USER                     | Character name                                            |
+| noaskquit       | (not set)                 | Don't ask confirmation on SIGQUIT (no effect for Q)       |
+| noskull, notomb | (not set)                 | Don't display headstone after death                       |
+| fruit=          | slime-mold                | Name of the "fruit" food                                  |
+| passgo          | (not set)                 | Run around corners with Shift                             |
+| openinv         | (not set)                 | Automatically open inventory on w, W, P, etc.             |
+| lowhealth       | 0                         | Print health in standout if HP is lower than this number. |
+
 
 e.g. `export ROGUEOPTS='name=Zaphod Beeblebrox,openinv'`.
 
@@ -83,6 +88,8 @@ The core game is unchanged, with just a few small quality of life enhancements:
 
 - Also allow Esc and Enter to clear "--press space to continue--" prompts.
 
+- Add openinv and lowhealth options.
+
 - Some more feedback in prompts.
 
 - Remove `!` command to drop back to shell; it didn't work on Windows and it was
@@ -103,6 +110,3 @@ Source files for rogue; most are pretty much the same as far as I could see:
   (Removed in 5).
 - https://www.freshports.org/games/bsdgames/ (the "BSD games" were moved to a
   port in FreeBSD 5; I used this as a starting point).
-
-[The roguelike archive]: https://britzl.github.io/roguearchive/
-[Wikipedia]: https://en.wikipedia.org/wiki/Rogue_(video_game)
