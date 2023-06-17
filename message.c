@@ -67,7 +67,7 @@ void message(const char *msg, boolean intrpt) {
 	}
 	if (intrpt) {
 		interrupted = 1;
-		md_slurp();
+		fflush(stdin);
 	}
 
 	if (!msg_cleared) {
@@ -187,13 +187,6 @@ int rgetchar(void) {
 		case '\022':
 			wrefresh(curscr);
 			break;
-#ifdef UNIX_BSD4_2
-		case '\032':
-			printf("%s", CL);
-			fflush(stdout);
-			tstp();
-			break;
-#endif
 		case '&':
 			save_screen();
 			break;

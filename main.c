@@ -46,12 +46,14 @@
  *
  */
 
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include "rogue.h"
 
-int
-main(int argc, char *argv[])
-{
-	if (init(argc, argv)) {		/* restored game */
+int main(int argc, char *argv[]) {
+	if (init(argc, argv)) {		// restored game
 		goto PL;
 	}
 
@@ -68,5 +70,308 @@ PL:
 		play_level();
 		free_stuff(&level_objects);
 		free_stuff(&level_monsters);
+	}
+}
+
+static void do_args(int, char **);
+static void do_opts(void);
+static void env_get_value(char **, char *, boolean);
+static void init_str(char **, const char *);
+static void player_init(void);
+
+static char *rest_file = NULL;
+static boolean init_curses = 0;
+
+char login_name[MAX_OPT_LEN];
+char *nick_name = NULL;
+int low_health_warn = 0;
+boolean cant_int = 0;
+boolean did_int = 0;
+boolean score_only;
+boolean save_is_interactive = 1;
+boolean ask_quit = 1;
+boolean no_skull = 0;
+boolean passgo = 0;
+boolean openinv = 0;
+const char *error_file = "rogue.esave";
+const char *byebye_string = "Okay, bye bye!";
+
+boolean init(int argc, char *argv[]) {
+	const char *pn;
+
+	pn = md_user();
+	if ((!pn) || (strlen(pn) >= MAX_OPT_LEN)) {
+		clean_up("Hey!  Who are you?");
+	}
+	strcpy(login_name, pn);
+
+	do_args(argc, argv);
+	do_opts();
+	struct stat s;
+	int exist = stat(save_file, &s);
+	if (exist == 0) {
+		rest_file = save_file;
+		printf("Restoring from %s", rest_file);
+		fflush(stdout);
+	}
+
+	if (!score_only && !rest_file) {
+		printf("Hello %s, just a moment while I dig the dungeon...", nick_name);
+		fflush(stdout);
+	}
+
+	initscr();
+	if ((LINES < DROWS) || (COLS < DCOLS)) {
+		clean_up("must be played on 24 x 80 screen");
+	}
+	start_window();
+	init_curses = 1;
+
+	md_heed_signals();
+
+	if (score_only) {
+		put_scores(NULL, 0);
+	}
+	srand(seed());
+	if (rest_file) {
+		restore(rest_file);
+		return(1);
+	}
+	mix_colors();
+	get_wand_and_ring_materials();
+	make_scroll_titles();
+
+	level_objects.next_object = NULL;
+	level_monsters.next_monster = NULL;
+	player_init();
+	ring_stats(0);
+	return(0);
+}
+
+// https://stackoverflow.com/a/323302
+unsigned long seed(void) {
+	unsigned long a = clock();
+	unsigned long b = time(NULL);
+	unsigned long c = getpid();
+    a=a-b;  a=a-c;  a=a^(c >> 13);
+    b=b-c;  b=b-a;  b=b^(a << 8);
+    c=c-a;  c=c-b;  c=c^(b >> 13);
+    a=a-b;  a=a-c;  a=a^(c >> 12);
+    b=b-c;  b=b-a;  b=b^(a << 16);
+    c=c-a;  c=c-b;  c=c^(b >> 5);
+    a=a-b;  a=a-c;  a=a^(c >> 3);
+    b=b-c;  b=b-a;  b=b^(a << 10);
+    c=c-a;  c=c-b;  c=c^(b >> 15);
+    return c;
+}
+
+static void player_init(void) {
+	object *obj;
+
+	rogue.pack.next_object = NULL;
+
+	obj = alloc_object();
+	get_food(obj, 1);
+	add_to_pack(obj, &rogue.pack, 1);
+
+	obj = alloc_object();		// initial armor
+	obj->what_is = ARMOR;
+	obj->which_kind = RINGMAIL;
+	obj->class = RINGMAIL+2;
+	obj->is_protected = 0;
+	obj->d_enchant = 1;
+	add_to_pack(obj, &rogue.pack, 1);
+	do_wear(obj);
+
+	obj = alloc_object();		// initial weapons
+	obj->what_is = WEAPON;
+	obj->which_kind = MACE;
+	obj->damage = "2d3";
+	obj->hit_enchant = obj->d_enchant = 1;
+	obj->identified = 1;
+	add_to_pack(obj, &rogue.pack, 1);
+	do_wield(obj);
+
+	obj = alloc_object();
+	obj->what_is = WEAPON;
+	obj->which_kind = BOW;
+	obj->damage = "1d2";
+	obj->hit_enchant = 1;
+	obj->d_enchant = 0;
+	obj->identified = 1;
+	add_to_pack(obj, &rogue.pack, 1);
+
+	obj = alloc_object();
+	obj->what_is = WEAPON;
+	obj->which_kind = ARROW;
+	obj->quantity = get_rand(25, 35);
+	obj->damage = "1d2";
+	obj->hit_enchant = 0;
+	obj->d_enchant = 0;
+	obj->identified = 1;
+	add_to_pack(obj, &rogue.pack, 1);
+}
+
+void clean_up(const char *estr) {
+	if (save_is_interactive) {
+		if (init_curses) {
+			move(DROWS-1, 0);
+			refresh();
+			stop_window();
+		}
+		printf("\n%s\n", estr);
+	}
+	exit(0);
+}
+
+void start_window(void) {
+	cbreak();
+	noecho();
+	nonl();
+}
+
+void stop_window(void) {
+	// Doesn't seem present in pdcurses?
+#ifndef WINDOWS
+	endwin();
+#endif
+}
+
+void byebye(__unused int sig) {
+	md_ignore_signals();
+	if (ask_quit) {
+		quit(1);
+	} else {
+		clean_up(byebye_string);
+	}
+	md_heed_signals();
+}
+
+void onintr(__unused int sig) {
+	md_ignore_signals();
+	if (cant_int) {
+		did_int = 1;
+	} else {
+		check_message();
+		message("interrupt", 1);
+	}
+	md_heed_signals();
+}
+
+void error_save(__unused int sig) {
+	save_is_interactive = 0;
+	save_into_file(error_file);
+	clean_up("");
+}
+
+static void do_args(int argc, char *argv[]) {
+	short i, j;
+
+	for (i = 1; i < argc; i++) {
+		if (argv[i][0] == '-') {
+			for (j = 1; argv[i][j]; j++) {
+				switch(argv[i][j]) {
+				case 's':
+					score_only = 1;
+					break;
+				}
+			}
+		} else {
+			rest_file = argv[i];
+		}
+	}
+}
+
+static void do_opts(void) {
+	char *eptr;
+
+	if ((eptr = getenv("ROGUEOPTS")) != NULL) {
+		for (;;) {
+			while ((*eptr) == ' ') {
+				eptr++;
+			}
+			if (!(*eptr)) {
+				break;
+			}
+			if (!strncmp(eptr, "fruit=", 6)) {
+				eptr += 6;
+				env_get_value(&fruit, eptr, 1);
+			} else if (!strncmp(eptr, "file=", 5)) {
+				eptr += 5;
+				env_get_value(&save_file, eptr, 0);
+			} else if (!strncmp(eptr, "name=", 5)) {
+				eptr += 5;
+				env_get_value(&nick_name, eptr, 0);
+			} else if (!strncmp(eptr, "lowhealth=", 5)) {
+				eptr += 10;
+				char *buf = NULL;
+				env_get_value(&buf, eptr, 0);
+				low_health_warn = parse_num(buf);
+			} else if (!strncmp(eptr, "noaskquit", 9)) {
+				ask_quit = 0;
+			} else if (!strncmp(eptr, "noskull", 7) || !strncmp(eptr,"notomb", 6)) {
+				no_skull = 1;
+			} else if (!strncmp(eptr, "passgo", 6)) {
+				passgo = 1;
+			} else if (!strncmp(eptr, "openinv", 7)) {
+				openinv = 1;
+			}
+			while ((*eptr) && (*eptr != ',')) {
+				eptr++;
+			}
+			if (!(*(eptr++))) {
+				break;
+			}
+		}
+	}
+	// If some strings have not been set through ROGUEOPTS, assign defaults to
+	// them so that the options editor has data to work with.
+	init_str(&nick_name, login_name);
+	init_str(&save_file, md_savefile());
+	init_str(&fruit, "slime-mold");
+}
+
+int parse_num(char *buf) {
+	char *end;
+	long result = strtol(buf, &end, 10);
+	if (*end) {
+		clean_up("not a number");
+	}
+	return result;
+}
+
+static void env_get_value(char **s, char *e, boolean add_blank) {
+	short i = 0;
+	const char *t;
+
+	t = e;
+
+	while ((*e) && (*e != ',')) {
+		if (*e == ':') {
+			*e = ';';		// ':' reserved for score file purposes
+		}
+		e++;
+		if (++i >= MAX_OPT_LEN) {
+			break;
+		}
+	}
+	// note: edit_opts() in room.c depends on this being the right size
+	*s = malloc(MAX_OPT_LEN + 2);
+	if (*s == NULL)
+		clean_up("out of memory");
+	strncpy(*s, t, i);
+	if (add_blank) {
+		(*s)[i++] = ' ';
+	}
+	(*s)[i] = '\0';
+}
+
+static void init_str(char **str, const char *dflt) {
+	if (!(*str)) {
+		// note: edit_opts() in room.c depends on this size
+		*str = malloc(MAX_OPT_LEN + 2);
+		if (*str == NULL)
+			clean_up("out of memory");
+		strcpy(*str, dflt);
 	}
 }

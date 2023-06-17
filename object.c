@@ -617,7 +617,7 @@ alloc_object(void)
 	if (free_list) {
 		obj = free_list;
 		free_list = free_list->next_object;
-	} else if (!(obj = (object *) md_malloc(sizeof(object)))) {
+	} else if (!(obj = (object *) malloc(sizeof(object)))) {
 			message("cannot allocate object, saving game", 0);
 			save_into_file(error_file);
 			clean_up("alloc_object:  save failed");

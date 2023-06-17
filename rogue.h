@@ -457,8 +457,17 @@ void	get_dir_rc(short, short *, short *, short);
 short	get_hit_chance(const object *);
 short	get_weapon_damage(const object *);
 void	s_con_mon(object *);
+void	special_hit(object *);
+void	rust(object *);
+void	cough_up(object *);
+boolean	seek_gold(object *);
+void	check_gold_seeker(object *);
+boolean	check_imitator(object *);
+boolean	imitating(short, short);
+boolean	m_confuse(object *);
+boolean	flame_broil(object *);
 
-/* init.c */
+/* main.c */
 boolean	init(int, char**);
 void	clean_up(const char *) __dead2;
 void	start_window(void);
@@ -493,8 +502,6 @@ int	hp_raise(void);
 void	show_average_hp(void);
 
 /* machdep.c */
-#ifdef UNIX
-void	md_slurp(void);
 void	md_control_keybord(boolean);
 void	md_heed_signals(void);
 void	md_ignore_signals(void);
@@ -502,17 +509,16 @@ int	md_get_file_id(const char *);
 int	md_link_count(const char *);
 void	md_gct(struct rogue_time *);
 void	md_gfmt(const char *, struct rogue_time *);
-boolean	md_df(const char *);
-void	md_sleep(int);
-char	*md_getenv(const char *);
-char	*md_malloc(int);
-void	md_exit(int) __dead2;
 void	md_lock(boolean);
+char    *md_homedir(void);
+char    *md_user(void);
 char    *md_scorefile(void);
 char    *md_savefile(void);
 char    *md_savedir(void);
 void    mkdir_p(const char *);
-#endif
+int	get_rand(int, int);
+boolean	rand_percent(int);
+boolean	coin_toss(void);
 
 /* message.c */
 void	message(const char *, boolean);
@@ -597,11 +603,6 @@ void	kick_into_pack(void);
 /* play.c */
 void	play_level(void);
 
-/* random.c */
-int	get_rand(int, int);
-boolean	rand_percent(int);
-boolean	coin_toss(void);
-
 /* ring.c */
 void	put_on_ring(void);
 void	do_put_on(object *, boolean);
@@ -639,17 +640,6 @@ void	put_scores(const object *, short) __dead2;
 boolean	is_vowel(short);
 void	xxxx(char *, short);
 long	xxx(boolean);
-
-/* spec_hit.c */
-void	special_hit(object *);
-void	rust(object *);
-void	cough_up(object *);
-boolean	seek_gold(object *);
-void	check_gold_seeker(object *);
-boolean	check_imitator(object *);
-boolean	imitating(short, short);
-boolean	m_confuse(object *);
-boolean	flame_broil(object *);
 
 /* throw.c */
 void	throw(void);

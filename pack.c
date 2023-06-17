@@ -55,9 +55,7 @@ static boolean is_pack_letter(short *, unsigned short *);
 static boolean mask_pack(const object *, unsigned short);
 static int next_avail_ichar(void);
 
-object *
-add_to_pack(object *obj, object *pack, int condense)
-{
+object * add_to_pack(object *obj, object *pack, int condense) {
 	object *op;
 
 	if (condense) {
@@ -82,22 +80,16 @@ add_to_pack(object *obj, object *pack, int condense)
 	return(obj);
 }
 
-void
-take_from_pack(object *obj, object *pack)
-{
+void take_from_pack(object *obj, object *pack) {
 	while (pack->next_object != obj) {
 		pack = pack->next_object;
 	}
 	pack->next_object = pack->next_object->next_object;
 }
 
-/* Note: *status is set to 0 if the rogue attempts to pick up a scroll
- * of scare-monster and it turns to dust.  *status is otherwise set to 1.
- */
-
-object *
-pick_up(int row, int col, short *status)
-{
+// Note: *status is set to 0 if the rogue attempts to pick up a scroll of
+// scare-monster and it turns to dust.  *status is otherwise set to 1.
+object * pick_up(int row, int col, short *status) {
 	object *obj;
 
 	*status = 1;
@@ -128,7 +120,7 @@ pick_up(int row, int col, short *status)
 		dungeon[row][col] &= ~(OBJECT);
 		take_from_pack(obj, &level_objects);
 		print_stats(STAT_GOLD);
-		return(obj);	/* obj will be free_object()ed in caller */
+		return(obj);  // obj will be free_object()ed in caller
 	}
 	if (pack_count(obj) >= MAX_PACK_COUNT) {
 		message("pack too full", 1);
@@ -141,9 +133,7 @@ pick_up(int row, int col, short *status)
 	return(obj);
 }
 
-void
-drop(void)
-{
+void drop(void) {
 	object *obj, *new;
 	short ch;
 	char desc[DCOLS];
@@ -204,9 +194,7 @@ drop(void)
 	reg_move();
 }
 
-static object *
-check_duplicate(object *obj, object *pack)
-{
+static object * check_duplicate(object *obj, object *pack) {
 	object *op;
 
 	if (!(obj->what_is & (WEAPON | FOOD | SCROL | POTION))) {
@@ -237,9 +225,7 @@ check_duplicate(object *obj, object *pack)
 	return(0);
 }
 
-static int
-next_avail_ichar(void)
-{
+static int next_avail_ichar(void) {
 	object *obj;
 	int i;
 	boolean ichars[26];
@@ -309,9 +295,7 @@ short pack_letter(const char *prompt, unsigned short mask) {
 	return(ch);
 }
 
-void
-take_off(void)
-{
+void take_off(void) {
 	char desc[DCOLS];
 	object *obj;
 
@@ -333,9 +317,7 @@ take_off(void)
 	}
 }
 
-void
-wear(void)
-{
+void wear(void) {
 	short ch;
 	object *obj;
 	char desc[DCOLS];
@@ -366,18 +348,14 @@ wear(void)
 	reg_move();
 }
 
-void
-unwear(object *obj)
-{
+void unwear(object *obj) {
 	if (obj) {
 		obj->in_use_flags &= (~BEING_WORN);
 	}
 	rogue.armor = NULL;
 }
 
-void
-do_wear(object *obj)
-{
+void do_wear(object *obj) {
 	rogue.armor = obj;
 	obj->in_use_flags |= BEING_WORN;
 	obj->identified = 1;
@@ -419,25 +397,19 @@ void wield(void) {
 	}
 }
 
-void
-do_wield(object *obj)
-{
+void do_wield(object *obj) {
 	rogue.weapon = obj;
 	obj->in_use_flags |= BEING_WIELDED;
 }
 
-void
-unwield(object *obj)
-{
+void unwield(object *obj) {
 	if (obj) {
 		obj->in_use_flags &= (~BEING_WIELDED);
 	}
 	rogue.weapon = NULL;
 }
 
-void
-call_it(void)
-{
+void call_it(void) {
 	short ch;
 	object *obj;
 	struct id *id_table;
@@ -464,9 +436,7 @@ call_it(void)
 	}
 }
 
-short
-pack_count(const object *new_obj)
-{
+short pack_count(const object *new_obj) {
 	object *obj;
 	short count = 0;
 
@@ -491,9 +461,7 @@ pack_count(const object *new_obj)
 	return(count);
 }
 
-static boolean
-mask_pack(const object *pack, unsigned short mask)
-{
+static boolean mask_pack(const object *pack, unsigned short mask) {
 	while (pack->next_object) {
 		pack = pack->next_object;
 		if (pack->what_is & mask) {
@@ -503,9 +471,7 @@ mask_pack(const object *pack, unsigned short mask)
 	return(0);
 }
 
-static boolean
-is_pack_letter(short *c, unsigned short *mask)
-{
+static boolean is_pack_letter(short *c, unsigned short *mask) {
 	if (((*c == '?') || (*c == '!') || (*c == ':') || (*c == '=') ||
 		(*c == ')') || (*c == ']') || (*c == '/') || (*c == ','))) {
 		switch(*c) {
@@ -540,15 +506,11 @@ is_pack_letter(short *c, unsigned short *mask)
 	return(((*c >= 'a') && (*c <= 'z')) || (*c == CANCEL) || (*c == LIST));
 }
 
-boolean
-has_amulet(void)
-{
+boolean has_amulet(void) {
 	return(mask_pack(&rogue.pack, AMULET));
 }
 
-void
-kick_into_pack(void)
-{
+void kick_into_pack(void) {
 	object *obj;
 	char desc[DCOLS];
 	short n, stat;

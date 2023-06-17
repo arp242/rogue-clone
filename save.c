@@ -89,13 +89,9 @@ void save_into_file(const char *sfile) {
 	struct rogue_time rt_buf;
 
 	if (sfile[0] == '~') {
-#ifdef WINDOWS
-		if ((hptr = md_getenv("HOME")) != NULL) {
-#else
-		if ((hptr = md_getenv("USERPROFILE")) != NULL) {
-#endif
+		if ((hptr = md_homedir()) != NULL) {
 			len = strlen(hptr) + strlen(sfile);
-			name_buffer = md_malloc(len);
+			name_buffer = malloc(len);
 			if (name_buffer == NULL) {
 				message("out of memory for save file name", 0);
 				sfile = error_file;
@@ -149,12 +145,12 @@ void save_into_file(const char *sfile) {
 	r_write(fp, (char *) &score_only, sizeof(score_only));
 	r_write(fp, (char *) &m_moves, sizeof(m_moves));
 	md_gct(&rt_buf);
-	rt_buf.second += 10;		/* allow for some processing time */
+	rt_buf.second += 10;  // allow for some processing time
 	r_write(fp, (char *) &rt_buf, sizeof(rt_buf));
 	fclose(fp);
 
 	if (write_failed) {
-		md_df(sfile);	/* delete file */
+		unlink(sfile);  // delete file
 	} else {
 		if (strcmp(sfile, save_name) == 0)
 			save_name[0] = 0;
@@ -165,7 +161,7 @@ void save_into_file(const char *sfile) {
 static void del_save_file(void) {
 	if (!save_name[0])
 		return;
-	md_df(save_name);
+	unlink(save_name);
 }
 
 void restore(const char *fname) {

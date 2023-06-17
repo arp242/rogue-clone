@@ -51,96 +51,25 @@ boolean is_wood[WANDS];
 const char *press_space = " --press space to continue--";
 
 static const char *const wand_materials[WAND_MATERIALS] = {
-	"steel ",
-	"bronze ",
-	"gold ",
-	"silver ",
-	"copper ",
-	"nickel ",
-	"cobalt ",
-	"tin ",
-	"iron ",
-	"magnesium ",
-	"chrome ",
-	"carbon ",
-	"platinum ",
-	"silicon ",
-	"titanium ",
-	"teak ",
-	"oak ",
-	"cherry ",
-	"birch ",
-	"pine ",
-	"cedar ",
-	"redwood ",
-	"balsa ",
-	"ivory ",
-	"walnut ",
-	"maple ",
-	"mahogany ",
-	"elm ",
-	"palm ",
-	"wooden "
+	"steel ",    "bronze ", "gold ",      "silver ", "copper ", "nickel ",    "cobalt ",
+	"tin ",      "iron ",   "magnesium ", "chrome ", "carbon ", "platinum  ", "silicon ",
+	"titanium ", "teak ",   "oak ",       "cherry ", "birch ",  "pine ",      "cedar ",
+	"balsa ",    "ivory ",  "walnut ",    "maple ",  "mahogany  ", "elm ",    "palm ",
+	"redwood ",  "wooden "
 };
 
 static const char *const gems[GEMS] = {
-	"diamond ",
-	"stibotantalite ",
-	"lapi-lazuli ",
-	"ruby ",
-	"emerald ",
-	"sapphire ",
-	"amethyst ",
-	"quartz ",
-	"tiger-eye ",
-	"opal ",
-	"agate ",
-	"turquoise ",
-	"pearl ",
-	"garnet "
+	"diamond ",  "stibotantalite ", "lapi-lazuli ", "ruby ", "emerald ", "sapphire ",
+	"amethyst ", "quartz ",         "tiger-eye ",   "opal ", "agate ",   "turquoise ",
+	"pearl ",    "garnet "
 };
 
 static const char *const syllables[MAXSYLLABLES] = {
-	"blech ",
-	"foo ",
-	"barf ",
-	"rech ",
-	"bar ",
-	"blech ",
-	"quo ",
-	"bloto ",
-	"oh ",
-	"caca ",
-	"blorp ",
-	"erp ",
-	"festr ",
-	"rot ",
-	"slie ",
-	"snorf ",
-	"iky ",
-	"yuky ",
-	"ooze ",
-	"ah ",
-	"bahl ",
-	"zep ",
-	"druhl ",
-	"flem ",
-	"behil ",
-	"arek ",
-	"mep ",
-	"zihr ",
-	"grit ",
-	"kona ",
-	"kini ",
-	"ichi ",
-	"tims ",
-	"ogr ",
-	"oo ",
-	"ighr ",
-	"coph ",
-	"swerr ",
-	"mihln ",
-	"poxi "
+	"blech ", "foo ",   "barf ",  "rech ",  "bar ",   "blech ", "quo ",   "bloto ", "oh ",
+	"caca ",  "blorp ", "erp ",   "festr ", "rot ",   "slie ",  "snorf ", "iky ",   "yuky ",
+	"ooze ",  "ah ",    "bahl ",  "zep ",   "druhl ", "flem ",  "behil ", "arek ",  "mep ",
+	"zihr ",  "grit ",  "kona ",  "kini ",  "ichi ",  "tims ",  "ogr ",   "oo ",    "ighr ",
+	"coph ",  "swerr ", "mihln ", "poxi "
 };
 
 #define COMS 47
@@ -232,7 +161,7 @@ void inventory(const object *pack, unsigned short mask, short dont_wait) {
 			if ((n = strlen(inv_descs[i])) > maxlen) {
 				maxlen = n;
 			}
-		i++;
+			i++;
 		}
 		obj = obj->next_object;
 	}
@@ -346,9 +275,7 @@ MORE:
 	}
 }
 
-static boolean
-pr_com_id(int ch)
-{
+static boolean pr_com_id(int ch) {
 	int i;
 
 	if (!get_com_id(&i, ch)) {
@@ -359,9 +286,7 @@ pr_com_id(int ch)
 	return(1);
 }
 
-static boolean
-get_com_id(int *idx, short ch)
-{
+static boolean get_com_id(int *idx, short ch) {
 	short i;
 
 	for (i = 0; i < COMS; i++) {
@@ -373,9 +298,7 @@ get_com_id(int *idx, short ch)
 	return(0);
 }
 
-static boolean
-pr_motion_char(int ch)
-{
+static boolean pr_motion_char(int ch) {
 	if (	(ch == 'J') ||
 			(ch == 'K') ||
 			(ch == 'L') ||
@@ -413,9 +336,7 @@ pr_motion_char(int ch)
 	}
 }
 
-void
-mix_colors(void)
-{
+void mix_colors(void) {
 	short i, j, k;
 	char *t[MAX_ID_TITLE_LEN];
 
@@ -428,9 +349,7 @@ mix_colors(void)
 	}
 }
 
-void
-make_scroll_titles(void)
-{
+void make_scroll_titles(void) {
 	short i, j, n;
 	short sylls, s;
 
@@ -447,9 +366,7 @@ make_scroll_titles(void)
 	}
 }
 
-void
-get_desc(const object *obj, char *desc)
-{
+void get_desc(const object *obj, char *desc) {
 	const char *item_name;
 	struct id *id_table;
 	char more_info[32];
@@ -609,9 +526,7 @@ ANA:
 	}
 }
 
-void
-get_wand_and_ring_materials(void)
-{
+void get_wand_and_ring_materials(void) {
 	short i, j;
 	boolean used[WAND_MATERIALS];
 
@@ -638,9 +553,7 @@ get_wand_and_ring_materials(void)
 	}
 }
 
-void
-single_inv(short ichar)
-{
+void single_inv(short ichar) {
 	short ch;
 	char desc[DCOLS];
 	object *obj;
@@ -662,9 +575,7 @@ single_inv(short ichar)
 	message(desc, 0);
 }
 
-struct id *
-get_id_table(const object *obj)
-{
+struct id * get_id_table(const object *obj) {
 	switch(obj->what_is) {
 	case SCROL:
 		return(id_scrolls);
@@ -682,9 +593,7 @@ get_id_table(const object *obj)
 	return(NULL);
 }
 
-void
-inv_armor_weapon(boolean is_weapon)
-{
+void inv_armor_weapon(boolean is_weapon) {
 	if (is_weapon) {
 		if (rogue.weapon) {
 			single_inv(rogue.weapon->ichar);
@@ -700,9 +609,7 @@ inv_armor_weapon(boolean is_weapon)
 	}
 }
 
-void
-id_type(void)
-{
+void id_type(void) {
 	const char *id;
 	int ch;
 	char buf[DCOLS];
@@ -718,61 +625,25 @@ id_type(void)
 		return;
 	} else {
 		switch(ch) {
-		case '@':
-			id = "you";
-			break;
-		case '%':
-			id = "staircase";
-			break;
-		case '^':
-			id = "trap";
-			break;
-		case '+':
-			id = "door";
-			break;
+		case '@': id = "you";                   break;
+		case '%': id = "staircase";             break;
+		case '^': id = "trap";                  break;
+		case '+': id = "door";                  break;
 		case '-':
-		case '|':
-			id = "wall of a room";
-			break;
-		case '.':
-			id = "floor";
-			break;
-		case '#':
-			id = "passage";
-			break;
-		case ' ':
-			id = "solid rock";
-			break;
-		case '=':
-			id = "ring";
-			break;
-		case '?':
-			id = "scroll";
-			break;
-		case '!':
-			id = "potion";
-			break;
-		case '/':
-			id = "wand or staff";
-			break;
-		case ')':
-			id = "weapon";
-			break;
-		case ']':
-			id = "armor";
-			break;
-		case '*':
-			id = "gold";
-			break;
-		case ':':
-			id = "food";
-			break;
-		case ',':
-			id = "the Amulet of Yendor";
-			break;
-		default:
-			id = "unknown character";
-			break;
+		case '|': id = "wall of a room";        break;
+		case '.': id = "floor";                 break;
+		case '#': id = "passage";               break;
+		case ' ': id = "solid rock";            break;
+		case '=': id = "ring";                  break;
+		case '?': id = "scroll";                break;
+		case '!': id = "potion";                break;
+		case '/': id = "wand or staff";         break;
+		case ')': id = "weapon";                break;
+		case ']': id = "armor";                 break;
+		case '*': id = "gold";                  break;
+		case ':': id = "food";                  break;
+		case ',': id = "the Amulet of Yendor";  break;
+		default:  id = "unknown character";     break;
 		}
 	}
 	check_message();
