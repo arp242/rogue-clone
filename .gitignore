@@ -1,3 +1,4 @@
 *.o
-/rogue
-/rogue.exe
+/rogue-clone
+/rogue-clone.exe
+/wasm

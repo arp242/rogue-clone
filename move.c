@@ -1,6 +1,5 @@
-/*-
- * Copyright (c) 1988, 1993
- *	The Regents of the University of California.  All rights reserved.
+/* Copyright (c) 1988, 1993
+ * The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software contributed to Berkeley by
  * Timothy C. Stoehr.
@@ -29,12 +28,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)move.c	8.1 (Berkeley) 5/31/93
+ * @(#)move.c 8.1 (Berkeley) 5/31/93
  * $FreeBSD: src/games/rogue/move.c,v 1.7 1999/11/30 03:49:24 billf Exp $
- */
-
-/*
- * move.c
  *
  * This source herein may be modified and/or distributed by anybody who
  * so desires, with the following restrictions:
@@ -42,39 +37,32 @@
  *    2.)  Credit shall not be taken for the creation of this source.
  *    3.)  This code is not to be traded, sold, or used for personal
  *         gain or profit.
- *
  */
 
 #include "rogue.h"
 
 short m_moves = 0;
+bool revshift = false;
 const char you_can_move_again[] = "you can move again";
 
-static boolean can_turn(short, short);
-static boolean check_hunger(boolean);
+static bool can_turn(short, short);
+static bool check_hunger(bool);
 static short gr_dir(void);
 static void heal(void);
-static boolean next_to_something(int, int);
-static void turn_passage(short, boolean);
+static bool next_to_something(int, int);
+static void turn_passage(short, bool);
 
-short one_move_rogue(short dirch, short pickup) {
-	short row, col;
-	object *obj;
-	char desc[DCOLS];
-	short n, status, d;
-
-	row = rogue.row;
-	col = rogue.col;
-
-	if (confused) {
+short one_move_rogue(int dirch, short pickup) {
+	if (confused)
 		dirch = gr_dir();
-	}
+
+	int d = -1;
+	short row = rogue.row, col = rogue.col;
 	is_direction(dirch, &d);
 	get_dir_rc(d, &row, &col, 1);
+	if (!can_move(rogue.row, rogue.col, row, col))
+		return MOVE_FAILED;
 
-	if (!can_move(rogue.row, rogue.col, row, col)) {
-		return(MOVE_FAILED);
-	}
 	if (being_held || bear_trap) {
 		if (!(dungeon[row][col] & MONSTER)) {
 			if (being_held) {
@@ -83,19 +71,19 @@ short one_move_rogue(short dirch, short pickup) {
 				message("you are still stuck in the bear trap", 0);
 				reg_move();
 			}
-			return(MOVE_FAILED);
+			return MOVE_FAILED;
 		}
 	}
 	if (r_teleport) {
 		if (rand_percent(R_TELE_PERCENT)) {
 			tele();
-			return(STOPPED_ON_SOMETHING);
+			return STOPPED_ON_SOMETHING;
 		}
 	}
 	if (dungeon[row][col] & MONSTER) {
 		rogue_hit(object_at(&level_monsters, row, col), 0);
 		reg_move();
-		return(MOVE_FAILED);
+		return MOVE_FAILED;
 	}
 	if (dungeon[row][col] & DOOR) {
 		if (cur_room == PASSAGE) {
@@ -107,210 +95,165 @@ short one_move_rogue(short dirch, short pickup) {
 		} else {
 			light_passage(row, col);
 		}
-	} else if ((dungeon[rogue.row][rogue.col] & DOOR) &&
-		   (dungeon[row][col] & TUNNEL)) {
+	} else if ((dungeon[rogue.row][rogue.col] & DOOR) && (dungeon[row][col] & TUNNEL)) {
 		light_passage(row, col);
 		wake_room(cur_room, 0, rogue.row, rogue.col);
 		darken_room(cur_room);
 		cur_room = PASSAGE;
-	} else if (dungeon[row][col] & TUNNEL) {
-			light_passage(row, col);
-	}
+	} else if (dungeon[row][col] & TUNNEL)
+		light_passage(row, col);
+
 	mvaddch(rogue.row, rogue.col, get_dungeon_char(rogue.row, rogue.col));
 	mvaddch(row, col, rogue.fchar);
 	refresh();
 	rogue.row = row;
 	rogue.col = col;
+	object *obj;
+	char desc[DCOLS];
 	if (dungeon[row][col] & OBJECT) {
-		if (levitate && pickup) {
-			return(STOPPED_ON_SOMETHING);
-		}
+		if (levitate && pickup)
+			return STOPPED_ON_SOMETHING;
+
 		if (pickup && !levitate) {
+			short status;
 			if ((obj = pick_up(row, col, &status)) != NULL) {
 				get_desc(obj, desc);
 				if (obj->what_is == GOLD) {
 					free_object(obj);
-					goto NOT_IN_PACK;
+					goto not_in_pack;
 				}
-			} else if (!status) {
-				goto MVED;
-			} else {
-				goto MOVE_ON;
-			}
+			} else if (!status)
+				goto moved;
+			else
+				goto move_on;
 		} else {
-MOVE_ON:
+move_on:
 			obj = object_at(&level_objects, row, col);
 			strcpy(desc, "moved onto ");
-			get_desc(obj, desc+11);
-			goto NOT_IN_PACK;
+			get_desc(obj, desc + 11);
+			goto not_in_pack;
 		}
-		n = strlen(desc);
+		short n = strlen(desc);
 		desc[n] = '(';
 		desc[n+1] = obj->ichar;
 		desc[n+2] = ')';
 		desc[n+3] = 0;
-NOT_IN_PACK:
+not_in_pack:
 		message(desc, 1);
 		reg_move();
-		return(STOPPED_ON_SOMETHING);
+		return STOPPED_ON_SOMETHING;
 	}
 	if (dungeon[row][col] & (DOOR | STAIRS | TRAP)) {
-		if ((!levitate) && (dungeon[row][col] & TRAP)) {
+		if ((!levitate) && (dungeon[row][col] & TRAP))
 			trap_player(row, col);
-		}
 		reg_move();
-		return(STOPPED_ON_SOMETHING);
+		return STOPPED_ON_SOMETHING;
 	}
-MVED:	if (reg_move()) {			/* fainted from hunger */
-			return(STOPPED_ON_SOMETHING);
-	}
-	return((confused ? STOPPED_ON_SOMETHING : MOVED));
+moved:
+	if (reg_move())  // fainted from hunger
+		return STOPPED_ON_SOMETHING;
+	return confused ? STOPPED_ON_SOMETHING : MOVED;
 }
 
-void
-multiple_move_rogue(short dirch)
-{
-	short row, col;
-	short m;
+void multiple_move_rogue(short dirch) {
+	if (revshift)
+		dirch ^= 0x40;
 
-	switch(dirch) {
-	case '\010':
-	case '\012':
-	case '\013':
-	case '\014':
-	case '\031':
-	case '\025':
-	case '\016':
-	case '\002':
-		do {
-			row = rogue.row;
-			col = rogue.col;
-			if (((m = one_move_rogue((dirch + 96), 1)) == MOVE_FAILED) ||
-				(m == STOPPED_ON_SOMETHING) ||
-				interrupted) {
-				break;
-			}
-		} while (!next_to_something(row, col));
-		if (	(!interrupted) && passgo && (m == MOVE_FAILED) &&
-				(dungeon[rogue.row][rogue.col] & TUNNEL)) {
-			turn_passage(dirch + 96, 0);
-		}
-		break;
-	case 'H':
-	case 'J':
-	case 'K':
-	case 'L':
-	case 'B':
-	case 'Y':
-	case 'U':
-	case 'N':
-		while ((!interrupted) && (one_move_rogue((dirch + 32), 1) == MOVED))
+	switch (dirch) {
+	case 'H': case 'J': case 'K': case 'L': case 'B': case 'Y': case 'U': case 'N':
+		while (!interrupted && one_move_rogue((dirch + 32), 1) == MOVED)
 			;
 
-		if (	(!interrupted) && passgo &&
-				(dungeon[rogue.row][rogue.col] & TUNNEL)) {
+		if (!interrupted && passgo && (dungeon[rogue.row][rogue.col] & TUNNEL))
 			turn_passage(dirch + 32, 1);
-		}
-		break;
+		return;
 	}
+
+	short m, row, col;
+	do {
+		row = rogue.row;
+		col = rogue.col;
+		if ((m = one_move_rogue((dirch + 96), 1)) == MOVE_FAILED || m == STOPPED_ON_SOMETHING || interrupted)
+			break;
+	} while (!next_to_something(row, col));
+	if (!interrupted && passgo && m == MOVE_FAILED && (dungeon[rogue.row][rogue.col] & TUNNEL))
+		turn_passage(dirch + 96, 0);
 }
 
-boolean
-is_passable(int row, int col)
-{
-	if ((row < MIN_ROW) || (row > (DROWS - 2)) || (col < 0) ||
-		(col > (DCOLS-1))) {
-		return(0);
-	}
-	if (dungeon[row][col] & HIDDEN) {
-		return((dungeon[row][col] & TRAP) ? 1 : 0);
-	}
-	return(dungeon[row][col] & (FLOOR | TUNNEL | DOOR | STAIRS | TRAP));
+bool is_passable(int row, int col) {
+	if ((row < MIN_ROW) || (row > (DROWS - 2)) || (col < 0) || (col > (DCOLS-1)))
+		return 0;
+	if (dungeon[row][col] & HIDDEN)
+		return (dungeon[row][col] & TRAP) ? 1 : 0;
+	return dungeon[row][col] & (FLOOR | TUNNEL | DOOR | STAIRS | TRAP);
 }
 
-static boolean
-next_to_something(int drow, int dcol)
-{
-	short i, j, i_end, j_end, row, col;
+static bool next_to_something(int drow, int dcol) {
+	if (confused)
+		return 1;
+	if (blind)
+		return 0;
+
 	short pass_count = 0;
-	unsigned short s;
+	short i_end = (rogue.row < (DROWS-2)) ? 1 : 0;
+	short j_end = (rogue.col < (DCOLS-1)) ? 1 : 0;
 
-	if (confused) {
-		return(1);
-	}
-	if (blind) {
-		return(0);
-	}
-	i_end = (rogue.row < (DROWS-2)) ? 1 : 0;
-	j_end = (rogue.col < (DCOLS-1)) ? 1 : 0;
+	for (short i = ((rogue.row > MIN_ROW) ? -1 : 0); i <= i_end; i++) {
+		for (short j = ((rogue.col > 0) ? -1 : 0); j <= j_end; j++) {
+			if (i == 0 && j == 0)
+				continue;
+			if (rogue.row + i == drow && rogue.col + j == dcol)
+				continue;
 
-	for (i = ((rogue.row > MIN_ROW) ? -1 : 0); i <= i_end; i++) {
-		for (j = ((rogue.col > 0) ? -1 : 0); j <= j_end; j++) {
-			if ((i == 0) && (j == 0)) {
+			short row = rogue.row + i;
+			short col = rogue.col + j;
+			unsigned short s = dungeon[row][col];
+			if (s & HIDDEN)
 				continue;
-			}
-			if (((rogue.row+i) == drow) && ((rogue.col+j) == dcol)) {
-				continue;
-			}
-			row = rogue.row + i;
-			col = rogue.col + j;
-			s = dungeon[row][col];
-			if (s & HIDDEN) {
-				continue;
-			}
-			/* If the rogue used to be right, up, left, down, or right of
-			 * row,col, and now isn't, then don't stop */
+
+			// If the rogue used to be right, up, left, down, or right of
+			// row,col, and now isn't, then don't stop.
 			if (s & (MONSTER | OBJECT | STAIRS)) {
-				if (((row == drow) || (col == dcol)) &&
-					(!((row == rogue.row) || (col == rogue.col)))) {
+				if ((row == drow || col == dcol) && (!(row == rogue.row || col == rogue.col)))
 					continue;
-				}
-				return(1);
+				return 1;
 			}
 			if (s & TRAP) {
 				if (!(s & HIDDEN)) {
-					if (((row == drow) || (col == dcol)) &&
-						(!((row == rogue.row) || (col == rogue.col)))) {
+					if (((row == drow) || (col == dcol)) && (!((row == rogue.row) || (col == rogue.col))))
 						continue;
-					}
-					return(1);
+					return 1;
 				}
 			}
-			if ((((i - j) == 1) || ((i - j) == -1)) && (s & TUNNEL)) {
-				if (++pass_count > 1) {
-					return(1);
-				}
+			if ((i - j == 1 || i - j == -1) && (s & TUNNEL)) {
+				if (++pass_count > 1)
+					return 1;
 			}
-			if ((s & DOOR) && ((i == 0) || (j == 0))) {
-					return(1);
-			}
+			if ((s & DOOR) && ((i == 0) || (j == 0)))
+				return 1;
 		}
 	}
-	return(0);
+	return 0;
 }
 
-boolean
-can_move(short row1, short col1, short row2, short col2)
-{
-	if (!is_passable(row2, col2)) {
-		return(0);
+bool can_move(short row1, short col1, short row2, short col2) {
+	if (!is_passable(row2, col2))
+		return 0;
+
+	if (row1 != row2 && col1 != col2) {
+		if ((dungeon[row1][col1] & DOOR) || (dungeon[row2][col2] & DOOR))
+			return 0;
+		if ((!dungeon[row1][col2]) || (!dungeon[row2][col1]))
+			return 0;
 	}
-	if ((row1 != row2) && (col1 != col2)) {
-		if ((dungeon[row1][col1] & DOOR) || (dungeon[row2][col2] & DOOR)) {
-			return(0);
-		}
-		if ((!dungeon[row1][col2]) || (!dungeon[row2][col1])) {
-			return(0);
-		}
-	}
-	return(1);
+	return 1;
 }
 
 void move_onto(void) {
-	short ch, d;
-	boolean first_miss = 1;
-
 	message("move direction? ", 0);
+
+	int ch, d;
+	bool first_miss = 1;
 	while (!is_direction(ch = rgetchar(), &d)) {
 		sound_bell();
 		if (first_miss) {
@@ -319,53 +262,28 @@ void move_onto(void) {
 		}
 	}
 	check_message();
-	if (ch != CANCEL) {
+	if (ch != CANCEL)
 		one_move_rogue(ch, 0);
+}
+
+bool is_direction(int c, int *d) {
+	if (c >= '1' && c <= '9' && c != '5')
+		c = "bjnh lyku"[c - '1'];
+	switch (c) {
+	case 'h': case KEY_LEFT:  *d = LEFT;      return 1;
+	case 'j': case KEY_DOWN:  *d = DOWN;      return 1;
+	case 'k': case KEY_UP:    *d = UPWARD;    return 1;
+	case 'l': case KEY_RIGHT: *d = RIGHT;     return 1;
+	case 'b':                 *d = DOWNLEFT;  return 1;
+	case 'y':                 *d = UPLEFT;    return 1;
+	case 'u':                 *d = UPRIGHT;   return 1;
+	case 'n':                 *d = DOWNRIGHT; return 1;
+	case CANCEL:                              return 1;
+	default:                                  return 0;
 	}
 }
 
-boolean
-is_direction(short c, short *d)
-{
-	switch(c) {
-	case 'h':
-		*d = LEFT;
-		break;
-	case 'j':
-		*d = DOWN;
-		break;
-	case 'k':
-		*d = UPWARD;
-		break;
-	case 'l':
-		*d = RIGHT;
-		break;
-	case 'b':
-		*d = DOWNLEFT;
-		break;
-	case 'y':
-		*d = UPLEFT;
-		break;
-	case 'u':
-		*d = UPRIGHT;
-		break;
-	case 'n':
-		*d = DOWNRIGHT;
-		break;
-	case CANCEL:
-		break;
-	default:
-		return(0);
-	}
-	return(1);
-}
-
-static boolean
-check_hunger(boolean msg_only)
-{
-	short i, n;
-	boolean fainted = 0;
-
+static bool check_hunger(bool msg_only) {
 	if (rogue.moves_left == HUNGRY) {
 		strcpy(hunger_str, "hungry");
 		message(hunger_str, 0);
@@ -376,35 +294,33 @@ check_hunger(boolean msg_only)
 		message(hunger_str, 1);
 		print_stats(STAT_HUNGER);
 	}
+
+	bool fainted = 0;
 	if (rogue.moves_left <= FAINT) {
 		if (rogue.moves_left == FAINT) {
 			strcpy(hunger_str, "faint");
 			message(hunger_str, 1);
 			print_stats(STAT_HUNGER);
 		}
-		n = get_rand(0, (FAINT - rogue.moves_left));
+		short n = get_rand(0, (FAINT - rogue.moves_left));
 		if (n > 0) {
 			fainted = 1;
-			if (rand_percent(40)) {
+			if (rand_percent(40))
 				rogue.moves_left++;
-			}
 			message("you faint", 1);
-			for (i = 0; i < n; i++) {
-				if (coin_toss()) {
+			for (short i = 0; i < n; i++) {
+				if (coin_toss())
 					mv_mons();
-				}
 			}
 			message(you_can_move_again, 1);
 		}
 	}
-	if (msg_only) {
-		return(fainted);
-	}
-	if (rogue.moves_left <= STARVE) {
+	if (msg_only)
+		return fainted;
+	if (rogue.moves_left <= STARVE)
 		killed_by(NULL, STARVATION);
-	}
 
-	switch(e_rings) {
+	switch (e_rings) {
 	case -1:
 		rogue.moves_left -= (rogue.moves_left % 2);
 		break;
@@ -422,46 +338,38 @@ check_hunger(boolean msg_only)
 		rogue.moves_left--;
 		break;
 	}
-	return(fainted);
+	return fainted;
 }
 
-boolean
-reg_move(void)
-{
-	boolean fainted;
-
-	if ((rogue.moves_left <= HUNGRY) || (cur_level >= max_level)) {
+bool reg_move(void) {
+	bool fainted = 0;
+	if (rogue.moves_left <= HUNGRY || cur_level >= max_level)
 		fainted = check_hunger(0);
-	} else {
-		fainted = 0;
-	}
 
 	mv_mons();
 
 	if (++m_moves >= 120) {
 		m_moves = 0;
 		wanderer();
+		if (!noautosave)
+			save_into_file(save_file);
 	}
 	if (halluc) {
-		if (!(--halluc)) {
+		if (!(--halluc))
 			unhallucinate();
-		} else {
+		else
 			hallucinate();
-		}
 	}
 	if (blind) {
-		if (!(--blind)) {
+		if (!(--blind))
 			unblind();
-		}
 	}
 	if (confused) {
-		if (!(--confused)) {
+		if (!(--confused))
 			unconfuse();
-		}
 	}
-	if (bear_trap) {
+	if (bear_trap)
 		bear_trap--;
-	}
 	if (levitate) {
 		if (!(--levitate)) {
 			message("you float gently to the ground", 1);
@@ -471,73 +379,41 @@ reg_move(void)
 		}
 	}
 	if (haste_self) {
-		if (!(--haste_self)) {
+		if (!(--haste_self))
 			message("you feel yourself slowing down", 0);
-		}
 	}
 	heal();
-	if (auto_search > 0) {
+	if (auto_search > 0)
 		search(auto_search, auto_search);
-	}
-	return(fainted);
+	return fainted;
 }
 
-void
-rest(int count)
-{
-	int i;
-
+void rest(int count) {
 	interrupted = 0;
-
-	for (i = 0; i < count; i++) {
-		if (interrupted) {
+	for (int i = 0; i < count; i++) {
+		if (interrupted)
 			break;
-		}
 		reg_move();
 	}
 }
 
-static short
-gr_dir(void)
-{
-	short d;
-
-	d = get_rand(1, 8);
-
-	switch(d) {
-		case 1:
-			d = 'j';
-			break;
-		case 2:
-			d = 'k';
-			break;
-		case 3:
-			d = 'l';
-			break;
-		case 4:
-			d = 'h';
-			break;
-		case 5:
-			d = 'y';
-			break;
-		case 6:
-			d = 'u';
-			break;
-		case 7:
-			d = 'b';
-			break;
-		case 8:
-			d = 'n';
-			break;
+static short gr_dir(void) {
+	switch (get_rand(1, 8)) {
+	case 1:  return 'j';
+	case 2:  return 'k';
+	case 3:  return 'l';
+	case 4:  return 'h';
+	case 5:  return 'y';
+	case 6:  return 'u';
+	case 7:  return 'b';
+	case 8:  return 'n';
+	default: return 0;  // Unreachable
 	}
-	return(d);
 }
 
-static void
-heal(void)
-{
+static void heal(void) {
 	static short heal_exp = -1, n, c = 0;
-	static boolean alt;
+	static bool alt;
 
 	if (rogue.hp_current == rogue.hp_max) {
 		c = 0;
@@ -545,91 +421,57 @@ heal(void)
 	}
 	if (rogue.exp != heal_exp) {
 		heal_exp = rogue.exp;
-
-		switch(heal_exp) {
-		case 1:
-			n = 20;
-			break;
-		case 2:
-			n = 18;
-			break;
-		case 3:
-			n = 17;
-			break;
-		case 4:
-			n = 14;
-			break;
-		case 5:
-			n = 13;
-			break;
-		case 6:
-			n = 10;
-			break;
-		case 7:
-			n = 9;
-			break;
-		case 8:
-			n = 8;
-			break;
-		case 9:
-			n = 7;
-			break;
-		case 10:
-			n = 4;
-			break;
-		case 11:
-			n = 3;
-			break;
+		switch (heal_exp) {
+		case 1:  n = 20; break;
+		case 2:  n = 18; break;
+		case 3:  n = 17; break;
+		case 4:  n = 14; break;
+		case 5:  n = 13; break;
+		case 6:  n = 10; break;
+		case 7:  n = 9;  break;
+		case 8:  n = 8;  break;
+		case 9:  n = 7;  break;
+		case 10: n = 4;  break;
+		case 11: n = 3;  break;
 		case 12:
-		default:
-			n = 2;
+		default: n = 2;
 		}
 	}
 	if (++c >= n) {
 		c = 0;
 		rogue.hp_current++;
-		if ((alt = !alt) != 0) {
+		if ((alt = !alt) != 0)
 			rogue.hp_current++;
-		}
-		if ((rogue.hp_current += regeneration) > rogue.hp_max) {
+		if ((rogue.hp_current += regeneration) > rogue.hp_max)
 			rogue.hp_current = rogue.hp_max;
-		}
 		print_stats(STAT_HP);
 	}
 }
 
-static boolean
-can_turn(short nrow, short ncol)
-{
-	if ((dungeon[nrow][ncol] & TUNNEL) && is_passable(nrow, ncol)) {
-		return(1);
-	}
-	return(0);
+static bool can_turn(short nrow, short ncol) {
+	if ((dungeon[nrow][ncol] & TUNNEL) && is_passable(nrow, ncol))
+		return 1;
+	return 0;
 }
 
-static void
-turn_passage(short dir, boolean fast)
-{
-	short crow = rogue.row, ccol = rogue.col, turns = 0;
-	short ndir = 0;
-
-	if ((dir != 'h') && can_turn(crow, ccol + 1)) {
+static void turn_passage(short dir, bool fast) {
+	short crow = rogue.row, ccol = rogue.col, turns = 0, ndir = 0;
+	if (dir != 'h' && can_turn(crow, ccol + 1)) {
 		turns++;
 		ndir = 'l';
 	}
-	if ((dir != 'l') && can_turn(crow, ccol - 1)) {
+	if (dir != 'l' && can_turn(crow, ccol - 1)) {
 		turns++;
 		ndir = 'h';
 	}
-	if ((dir != 'k') && can_turn(crow + 1, ccol)) {
+	if (dir != 'k' && can_turn(crow + 1, ccol)) {
 		turns++;
 		ndir = 'j';
 	}
-	if ((dir != 'j') && can_turn(crow - 1, ccol)) {
+	if (dir != 'j' && can_turn(crow - 1, ccol)) {
 		turns++;
 		ndir = 'k';
 	}
-	if (turns == 1) {
+	if (turns == 1)
 		multiple_move_rogue(ndir - (fast ? 32 : 96));
-	}
 }

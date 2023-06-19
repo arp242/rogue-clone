@@ -1,6 +1,5 @@
-/*-
- * Copyright (c) 1988, 1993
- *	The Regents of the University of California.  All rights reserved.
+/* Copyright (c) 1988, 1993
+ * The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software contributed to Berkeley by
  * Timothy C. Stoehr.
@@ -29,12 +28,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)use.c	8.1 (Berkeley) 5/31/93
+ * @(#)use.c 8.1 (Berkeley) 5/31/93
  * $FreeBSD: src/games/rogue/use.c,v 1.4 1999/11/30 03:49:29 billf Exp $
- */
-
-/*
- * use.c
  *
  * This source herein may be modified and/or distributed by anybody who
  * so desires, with the following restrictions:
@@ -42,7 +37,6 @@
  *    2.)  Credit shall not be taken for the creation of this source.
  *    3.)  This code is not to be traded, sold, or used for personal
  *         gain or profit.
- *
  */
 
 #include <unistd.h>
@@ -53,10 +47,10 @@ short blind = 0;
 short confused = 0;
 short levitate = 0;
 short haste_self = 0;
-boolean see_invisible = 0;
+bool see_invisible = 0;
 short extra_hp = 0;
-boolean detect_monster = 0;
-boolean con_mon = 0;
+bool detect_monster = 0;
+bool con_mon = 0;
 
 static const char strange_feeling[] =
 	"you have a strange feeling for a moment, then it passes";
@@ -65,22 +59,16 @@ static const char *get_ench_color(void);
 static void go_blind(void);
 static void hold_monster(void);
 static void idntfy(void);
-static void potion_heal(boolean);
+static void potion_heal(bool);
 static void uncurse_all(void);
 
-void
-quaff(void)
-{
-	short ch;
-	char buf[80];
-	object *obj;
-
-	ch = pack_letter("quaff what?", POTION);
-
-	if (ch == CANCEL) {
+void quaff(void) {
+	short ch = pack_letter("quaff what?", POTION);
+	if (ch == CANCEL)
 		return;
-	}
-	if (!(obj = get_letter_object(ch))) {
+
+	object *obj = get_letter_object(ch);
+	if (!obj) {
 		message("no such item.", 0);
 		return;
 	}
@@ -88,14 +76,13 @@ quaff(void)
 		message("you can't drink that", 0);
 		return;
 	}
-	switch(obj->which_kind) {
+
+	switch (obj->which_kind) {
 		case INCREASE_STRENGTH:
-			message("you feel stronger now, what bulging muscles!",
-			0);
+			message("you feel stronger now, what bulging muscles!", 0);
 			rogue.str_current++;
-			if (rogue.str_current > rogue.str_max) {
+			if (rogue.str_current > rogue.str_max)
 				rogue.str_max = rogue.str_current;
-			}
 			break;
 		case RESTORE_STRENGTH:
 			rogue.str_current = rogue.str_max;
@@ -112,14 +99,12 @@ quaff(void)
 		case POISON:
 			if (!sustain_strength) {
 				rogue.str_current -= get_rand(1, 3);
-				if (rogue.str_current < 1) {
+				if (rogue.str_current < 1)
 					rogue.str_current = 1;
-				}
 			}
 			message("you feel very sick now", 0);
-			if (halluc) {
+			if (halluc)
 				unhallucinate();
-			}
 			break;
 		case RAISE_LEVEL:
 			rogue.exp_points = level_points[rogue.exp - 1];
@@ -135,22 +120,18 @@ quaff(void)
 			break;
 		case DETECT_MONSTER:
 			show_monsters();
-			if (!(level_monsters.next_monster)) {
+			if (!level_monsters.next_monster)
 				message(strange_feeling, 0);
-			}
 			break;
 		case DETECT_OBJECTS:
 			if (level_objects.next_object) {
-				if (!blind) {
+				if (!blind)
 					show_objects();
-				}
-			} else {
+			} else
 				message(strange_feeling, 0);
-			}
 			break;
 		case CONFUSION:
-			message((halluc ? "what a trippy feeling" :
-			"you feel confused"), 0);
+			message((halluc ? "what a trippy feeling" : "you feel confused"), 0);
 			cnfs();
 			break;
 		case LEVITATION:
@@ -161,40 +142,30 @@ quaff(void)
 		case HASTE_SELF:
 			message("you feel yourself moving much faster", 0);
 			haste_self += get_rand(11, 21);
-			if (!(haste_self % 2)) {
+			if (!(haste_self % 2))
 				haste_self++;
-			}
 			break;
 		case SEE_INVISIBLE:
-			sprintf(buf, "hmm, this potion tastes like %sjuice", fruit);
-			message(buf, 0);
-			if (blind) {
+			messagef(0, "hmm, this potion tastes like %sjuice", fruit);
+			if (blind)
 				unblind();
-			}
 			see_invisible = 1;
 			relight();
 			break;
 	}
 	print_stats((STAT_STRENGTH | STAT_HP));
-	if (id_potions[obj->which_kind].id_status != CALLED) {
+	if (id_potions[obj->which_kind].id_status != CALLED)
 		id_potions[obj->which_kind].id_status = IDENTIFIED;
-	}
 	vanish(obj, 1, &rogue.pack);
 }
 
-void
-read_scroll(void)
-{
-	short ch;
-	object *obj;
-	char msg[DCOLS];
-
-	ch = pack_letter("read what?", SCROL);
-
-	if (ch == CANCEL) {
+void read_scroll(void) {
+	short ch = pack_letter("read what?", SCROL);
+	if (ch == CANCEL)
 		return;
-	}
-	if (!(obj = get_letter_object(ch))) {
+
+	object *obj = get_letter_object(ch);
+	if (!obj) {
 		message("no such item.", 0);
 		return;
 	}
@@ -202,10 +173,10 @@ read_scroll(void)
 		message("you can't read that", 0);
 		return;
 	}
-	switch(obj->which_kind) {
+
+	switch (obj->which_kind) {
 		case SCARE_MONSTER:
-			message("you hear a maniacal laughter in the distance",
-			0);
+			message("you hear a maniacal laughter in the distance", 0);
 			break;
 		case HOLD_MONSTER:
 			hold_monster();
@@ -213,33 +184,25 @@ read_scroll(void)
 		case ENCH_WEAPON:
 			if (rogue.weapon) {
 				if (rogue.weapon->what_is == WEAPON) {
-					sprintf(msg, "your %sglow%s %sfor a moment",
-					name_of(rogue.weapon),
-					((rogue.weapon->quantity <= 1) ? "s" : ""),
-					get_ench_color());
-					message(msg, 0);
-					if (coin_toss()) {
+					messagef(0, "your %sglow%s %sfor a moment",
+						name_of(rogue.weapon), ((rogue.weapon->quantity <= 1) ? "s" : ""), get_ench_color());
+					if (coin_toss())
 						rogue.weapon->hit_enchant++;
-					} else {
+					else
 						rogue.weapon->d_enchant++;
-					}
 				}
 				rogue.weapon->is_cursed = 0;
-			} else {
+			} else
 				message("your hands tingle", 0);
-			}
 			break;
 		case ENCH_ARMOR:
 			if (rogue.armor) {
-				sprintf(msg, "your armor glows %sfor a moment",
-				get_ench_color());
-				message(msg, 0);
+				messagef(0, "your armor glows %sfor a moment", get_ench_color());
 				rogue.armor->d_enchant++;
 				rogue.armor->is_cursed = 0;
 				print_stats(STAT_ARMOR);
-			} else {
+			} else
 				message("your skin crawls", 0);
-			}
 			break;
 		case IDENTIFY:
 			message("this is a scroll of identify", 0);
@@ -256,17 +219,16 @@ read_scroll(void)
 			break;
 		case PROTECT_ARMOR:
 			if (rogue.armor) {
-				message( "your armor is covered by a shimmering gold shield",0);
+				message("your armor is covered by a shimmering gold shield", 0);
 				rogue.armor->is_protected = 1;
 				rogue.armor->is_cursed = 0;
-			} else {
+			} else
 				message("your acne seems to have disappeared", 0);
-			}
 			break;
 		case REMOVE_CURSE:
-				message((!halluc) ?
-					"you feel as though someone is watching over you" :
-					"you feel in touch with the universal oneness", 0);
+			message((!halluc) ?
+				"you feel as though someone is watching over you" :
+				"you feel in touch with the universal oneness", 0);
 			uncurse_all();
 			break;
 		case CREATE_MONSTER:
@@ -281,51 +243,37 @@ read_scroll(void)
 			break;
 		case CON_MON:
 			con_mon = 1;
-			sprintf(msg, "your hands glow %sfor a moment", get_ench_color());
-			message(msg, 0);
+			messagef(0, "your hands glow %sfor a moment", get_ench_color());
 			break;
 	}
-	if (id_scrolls[obj->which_kind].id_status != CALLED) {
+	if (id_scrolls[obj->which_kind].id_status != CALLED)
 		id_scrolls[obj->which_kind].id_status = IDENTIFIED;
-	}
 	vanish(obj, (obj->which_kind != SLEEP), &rogue.pack);
 }
 
-/* vanish() does NOT handle a quiver of weapons with more than one
- *  arrow (or whatever) in the quiver.  It will only decrement the count.
- */
-
-void
-vanish(object *obj, short rm, object *pack)
-{
-	if (obj->quantity > 1) {
+// vanish() does NOT handle a quiver of weapons with more than one arrow (or
+// whatever) in the quiver.  It will only decrement the count.
+void vanish(object *obj, short rm, object *pack) {
+	if (obj->quantity > 1)
 		obj->quantity--;
-	} else {
-		if (obj->in_use_flags & BEING_WIELDED) {
+	else {
+		if (obj->in_use_flags & BEING_WIELDED)
 			unwield(obj);
-		} else if (obj->in_use_flags & BEING_WORN) {
+		else if (obj->in_use_flags & BEING_WORN)
 			unwear(obj);
-		} else if (obj->in_use_flags & ON_EITHER_HAND) {
+		else if (obj->in_use_flags & ON_EITHER_HAND)
 			un_put_on(obj);
-		}
 		take_from_pack(obj, pack);
 		free_object(obj);
 	}
-	if (rm) {
+	if (rm)
 		reg_move();
-	}
 }
 
-static void
-potion_heal(boolean extra)
-{
-	float ratio;
-	short add;
-
+static void potion_heal(bool extra) {
 	rogue.hp_current += rogue.exp;
 
-	ratio = ((float)rogue.hp_current) / rogue.hp_max;
-
+	float ratio = ((float)rogue.hp_current) / rogue.hp_max;
 	if (ratio >= 1.00) {
 		rogue.hp_max += (extra ? 2 : 1);
 		extra_hp += (extra ? 2 : 1);
@@ -335,51 +283,46 @@ potion_heal(boolean extra)
 		extra_hp += (extra ? 1 : 0);
 		rogue.hp_current = rogue.hp_max;
 	} else {
-		if (ratio < 0.33) {
+		if (ratio < 0.33)
 			ratio = 0.33;
-		}
-		if (extra) {
+		if (extra)
 			ratio += ratio;
-		}
-		add = (short)(ratio * ((float)rogue.hp_max - rogue.hp_current));
+		short add = (short)(ratio * ((float)rogue.hp_max - rogue.hp_current));
 		rogue.hp_current += add;
-		if (rogue.hp_current > rogue.hp_max) {
+		if (rogue.hp_current > rogue.hp_max)
 			rogue.hp_current = rogue.hp_max;
-		}
 	}
-	if (blind) {
+
+	if (blind)
 		unblind();
-	}
-	if (confused && extra) {
+
+	if (confused && extra)
 		unconfuse();
-	} else if (confused) {
+	else if (confused)
 		confused = (confused / 2) + 1;
-	}
-	if (halluc && extra) {
+
+	if (halluc && extra)
 		unhallucinate();
-	} else if (halluc) {
+	else if (halluc)
 		halluc = (halluc / 2) + 1;
-	}
 }
 
-static void
-idntfy(void)
-{
+static void idntfy(void) {
 	short ch;
 	object *obj;
 	struct id *id_table;
 	char desc[DCOLS];
-AGAIN:
-	ch = pack_letter("what would you like to identify?", ALL_OBJECTS);
 
-	if (ch == CANCEL) {
+again:
+	ch = pack_letter("what would you like to identify?", ALL_OBJECTS);
+	if (ch == CANCEL)
 		return;
-	}
+
 	if (!(obj = get_letter_object(ch))) {
 		message("no such item, try again", 0);
 		message("", 0);
 		check_message();
-		goto AGAIN;
+		goto again;
 	}
 	obj->identified = 1;
 	if (obj->what_is & (SCROL | POTION | WEAPON | ARMOR | WAND | RING)) {
@@ -390,20 +333,13 @@ AGAIN:
 	message(desc, 0);
 }
 
-void
-eat(void)
-{
-	short ch;
-	short moves;
-	object *obj;
-	char buf[70];
-
-	ch = pack_letter("eat what?", FOOD);
-
-	if (ch == CANCEL) {
+void eat(void) {
+	short ch = pack_letter("eat what?", FOOD);
+	if (ch == CANCEL)
 		return;
-	}
-	if (!(obj = get_letter_object(ch))) {
+
+	object *obj = get_letter_object(ch);
+	if (!obj) {
 		message("no such item.", 0);
 		return;
 	}
@@ -411,14 +347,14 @@ eat(void)
 		message("you can't eat that", 0);
 		return;
 	}
+
+	short moves;
 	if ((obj->which_kind == FRUIT) || rand_percent(60)) {
 		moves = get_rand(950, 1150);
-		if (obj->which_kind == RATION) {
+		if (obj->which_kind == RATION)
 			message("yum, that tasted good", 0);
-		} else {
-			sprintf(buf, "my, that was a yummy %s", fruit);
-			message(buf, 0);
-		}
+		else
+			messagef(0, "my, that was a yummy %s", fruit);
 	} else {
 		moves = get_rand(750, 950);
 		message("yuk, that food tasted awful", 0);
@@ -432,200 +368,139 @@ eat(void)
 	vanish(obj, 1, &rogue.pack);
 }
 
-static void
-hold_monster(void)
-{
-	short i, j;
+static void hold_monster(void) {
 	short mcount = 0;
-	object *monster;
-	short row, col;
-
-	for (i = -2; i <= 2; i++) {
-		for (j = -2; j <= 2; j++) {
-			row = rogue.row + i;
-			col = rogue.col + j;
+	for (short i = -2; i <= 2; i++) {
+		for (short j = -2; j <= 2; j++) {
+			short row = rogue.row + i;
+			short col = rogue.col + j;
 			if ((row < MIN_ROW) || (row > (DROWS-2)) || (col < 0) ||
 				 (col > (DCOLS-1))) {
 				continue;
 			}
 			if (dungeon[row][col] & MONSTER) {
-				monster = object_at(&level_monsters, row, col);
+				object *monster = object_at(&level_monsters, row, col);
 				monster->m_flags |= ASLEEP;
 				monster->m_flags &= (~WAKENS);
 				mcount++;
 			}
 		}
 	}
-	if (mcount == 0) {
+	if (mcount == 0)
 		message("you feel a strange sense of loss", 0);
-	} else if (mcount == 1) {
+	else if (mcount == 1)
 		message("the monster freezes", 0);
-	} else {
+	else
 		message("the monsters around you freeze", 0);
-	}
 }
 
-void
-tele(void)
-{
+void tele(void) {
 	mvaddch(rogue.row, rogue.col, get_dungeon_char(rogue.row, rogue.col));
 
-	if (cur_room >= 0) {
+	if (cur_room >= 0)
 		darken_room(cur_room);
-	}
 	put_player(get_room_number(rogue.row, rogue.col));
 	being_held = 0;
 	bear_trap = 0;
 }
 
-void
-hallucinate(void)
-{
-	object *obj, *monster;
-	short ch;
+void hallucinate(void) {
+	if (blind)
+		return;
 
-	if (blind) return;
-
-	obj = level_objects.next_object;
-
+	object *obj = level_objects.next_object;
 	while (obj) {
-		ch = (short)mvinch(obj->row, obj->col);
-		if (((ch < 'A') || (ch > 'Z')) &&
-		    ((obj->row != rogue.row) || (obj->col != rogue.col)))
-		{
-			if ((ch != ' ') && (ch != '.') && (ch != '#') &&
-			    (ch != '+'))
-			{
+		short ch = (short)mvinch(obj->row, obj->col);
+		if ((ch < 'A' || ch > 'Z') && (obj->row != rogue.row || obj->col != rogue.col)) {
+			if (ch != ' ' && ch != '.' && ch != '#' && ch != '+')
 				addch(gr_obj_char());
-			}
 		}
 		obj = obj->next_object;
 	}
-	monster = level_monsters.next_monster;
 
+	object *monster = level_monsters.next_monster;
 	while (monster) {
-		ch = (short)mvinch(monster->row, monster->col);
-		if ((ch >= 'A') && (ch <= 'Z')) {
+		short ch = (short)mvinch(monster->row, monster->col);
+		if (ch >= 'A' && ch <= 'Z')
 			addch(get_rand('A', 'Z'));
-		}
 		monster = monster->next_monster;
 	}
 }
 
-void
-unhallucinate(void)
-{
+void unhallucinate(void) {
 	halluc = 0;
 	relight();
 	message("everything looks SO boring now", 1);
 }
 
-void
-unblind(void)
-{
+void unblind(void) {
 	blind = 0;
 	message("the veil of darkness lifts", 1);
 	relight();
-	if (halluc) {
+	if (halluc)
 		hallucinate();
-	}
-	if (detect_monster) {
+	if (detect_monster)
 		show_monsters();
-	}
 }
 
-void
-relight(void)
-{
-	if (cur_room == PASSAGE) {
+void relight(void) {
+	if (cur_room == PASSAGE)
 		light_passage(rogue.row, rogue.col);
-	} else {
+	else
 		light_up_room(cur_room);
-	}
 	mvaddch(rogue.row, rogue.col, rogue.fchar);
 }
 
-void
-take_a_nap(void)
-{
-	short i;
-
-	i = get_rand(2, 5);
+void take_a_nap(void) {
+	short i = get_rand(2, 5);
 	sleep(1);
-
-	while (i--) {
+	while (i--)
 		mv_mons();
-	}
 	sleep(1);
 	message(you_can_move_again, 0);
 }
 
-static void
-go_blind(void)
-{
-	short i, j;
-
-	if (!blind) {
+static void go_blind(void) {
+	if (!blind)
 		message("a cloak of darkness falls around you", 0);
-	}
+
 	blind += get_rand(500, 800);
 
 	if (detect_monster) {
-		object *monster;
-
-		monster = level_monsters.next_monster;
-
+		object *monster = level_monsters.next_monster;
 		while (monster) {
 			mvaddch(monster->row, monster->col, monster->trail_char);
 			monster = monster->next_monster;
 		}
 	}
 	if (cur_room >= 0) {
-		for (i = rooms[cur_room].top_row + 1;
-			 i < rooms[cur_room].bottom_row; i++) {
-			for (j = rooms[cur_room].left_col + 1;
-				 j < rooms[cur_room].right_col; j++) {
+		for (short i = rooms[cur_room].top_row + 1; i < rooms[cur_room].bottom_row; i++) {
+			for (short j = rooms[cur_room].left_col + 1; j < rooms[cur_room].right_col; j++)
 				mvaddch(i, j, ' ');
-			}
 		}
 	}
 	mvaddch(rogue.row, rogue.col, rogue.fchar);
 }
 
-static const char *
-get_ench_color(void)
-{
-	if (halluc) {
-		return(id_potions[get_rand(0, POTIONS-1)].title);
-	} else if (con_mon) {
-		return("red ");
-	}
-	return("blue ");
+static const char * get_ench_color(void) {
+	if (halluc)
+		return id_potions[get_rand(0, POTIONS-1)].title;
+	else if (con_mon)
+		return "red ";
+	return "blue ";
 }
 
-void
-cnfs(void)
-{
+void cnfs(void) {
 	confused += get_rand(12, 22);
 }
 
-void
-unconfuse(void)
-{
-	char msg[80];
-
+void unconfuse(void) {
 	confused = 0;
-	sprintf(msg, "you feel less %s now", (halluc ? "trippy" : "confused"));
-	message(msg, 1);
+	messagef(1, "you feel less %s now", (halluc ? "trippy" : "confused"));
 }
 
-static void
-uncurse_all(void)
-{
-	object *obj;
-
-	obj = rogue.pack.next_object;
-
+static void uncurse_all(void) {
+	object *obj = rogue.pack.next_object;
 	while (obj) {
 		obj->is_cursed = 0;
 		obj = obj->next_object;

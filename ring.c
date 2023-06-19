@@ -1,6 +1,5 @@
-/*-
- * Copyright (c) 1988, 1993
- *	The Regents of the University of California.  All rights reserved.
+/* Copyright (c) 1988, 1993
+ * The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software contributed to Berkeley by
  * Timothy C. Stoehr.
@@ -29,12 +28,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)ring.c	8.1 (Berkeley) 5/31/93
+ * @(#)ring.c 8.1 (Berkeley) 5/31/93
  * $FreeBSD: src/games/rogue/ring.c,v 1.3 1999/11/30 03:49:26 billf Exp $
- */
-
-/*
- * ring.c
  *
  * This source herein may be modified and/or distributed by anybody who
  * so desires, with the following restrictions:
@@ -42,13 +37,11 @@
  *    2.)  Credit shall not be taken for the creation of this source.
  *    3.)  This code is not to be traded, sold, or used for personal
  *         gain or profit.
- *
  */
 
 #include "rogue.h"
 
 static const char left_or_right[] = "left or right hand?";
-static const char no_ring[] = "there's no ring on that hand";
 
 short stealthy;
 short r_rings;
@@ -57,29 +50,27 @@ short e_rings;
 short regeneration;
 short ring_exp;
 short auto_search;
-boolean r_teleport;
-boolean r_see_invisible;
-boolean sustain_strength;
-boolean maintain_armor;
+bool r_teleport;
+bool r_see_invisible;
+bool sustain_strength;
+bool maintain_armor;
 
-void
-put_on_ring(void)
-{
-	short ch;
-	char desc[DCOLS];
-	object *ring;
-
+void put_on_ring(void) {
 	if (r_rings == 2) {
 		message("wearing two rings already", 0);
 		return;
 	}
-	if ((ch = pack_letter("put on what?", RING)) == CANCEL) {
+
+	int ch = pack_letter("put on what?", RING);
+	if (ch == CANCEL)
 		return;
-	}
-	if (!(ring = get_letter_object(ch))) {
+
+	object *ring = get_letter_object(ch);
+	if (!ring) {
 		message("no such item.", 0);
 		return;
 	}
+
 	if (!(ring->what_is & RING)) {
 		message("that's not a ring", 0);
 		return;
@@ -88,44 +79,34 @@ put_on_ring(void)
 		message("that ring is already being worn", 0);
 		return;
 	}
-	if (r_rings == 1) {
+	if (r_rings == 1)
 		ch = (rogue.left_ring ? 'r' : 'l');
-	} else {
+	else {
 		message(left_or_right, 0);
 		do {
 			ch = rgetchar();
-		} while ((ch != CANCEL) && (ch != 'l') && (ch != 'r') && (ch != '\n') &&
-			 	(ch != '\r'));
+		} while (ch != CANCEL && ch != 'l' && ch != 'r' && ch != '\n' && ch != '\r');
 	}
-	if ((ch != 'l') && (ch != 'r')) {
+	if (ch != 'l' && ch != 'r') {
 		check_message();
 		return;
 	}
-	if (((ch == 'l') && rogue.left_ring)||((ch == 'r') && rogue.right_ring)) {
+	if ((ch == 'l' && rogue.left_ring) || (ch == 'r' && rogue.right_ring)) {
 		check_message();
 		message("there's already a ring on that hand", 0);
 		return;
 	}
-	if (ch == 'l') {
-		do_put_on(ring, 1);
-	} else {
-		do_put_on(ring, 0);
-	}
+
+	do_put_on(ring, ch == 'l');
 	ring_stats(1);
 	check_message();
-	get_desc(ring, desc);
-	message(desc, 0);
+	message(get_desc_str(ring), 0);
 	reg_move();
 }
 
-/*
- * Do not call ring_stats() from within do_put_on().  It will cause
- * serious problems when do_put_on() is called from read_pack() in restore().
- */
-
-void
-do_put_on(object *ring, boolean on_left)
-{
+// Do not call ring_stats() from within do_put_on(). It will cause serious
+// problems when do_put_on() is called from read_pack() in restore().
+void do_put_on(object *ring, bool on_left) {
 	if (on_left) {
 		ring->in_use_flags |= ON_LEFT_HAND;
 		rogue.left_ring = ring;
@@ -135,60 +116,38 @@ do_put_on(object *ring, boolean on_left)
 	}
 }
 
-void
-remove_ring(void)
-{
-	boolean left = 0, right = 0;
-	short ch;
-	char buf[DCOLS];
-	object *ring;
-
-	ring = NULL;
+void remove_ring(void) {
 	if (r_rings == 0) {
-		inv_rings();
-	} else if (rogue.left_ring && !rogue.right_ring) {
+		message("not wearing any rings", 0);
+		return;
+	}
+
+	bool left = 0;
+	if (rogue.left_ring && !rogue.right_ring)
 		left = 1;
-	} else if (!rogue.left_ring && rogue.right_ring) {
-		right = 1;
-	} else {
+	else if (!rogue.left_ring && rogue.right_ring)
+		left = 0;
+	else {
 		message(left_or_right, 0);
+		int ch;
 		do {
 			ch = rgetchar();
-		} while ((ch != CANCEL) && (ch != 'l') && (ch != 'r') &&
-			(ch != '\n') && (ch != '\r'));
+		} while (ch != CANCEL && ch != 'l' && ch != 'r' && ch != '\n' && ch != '\r');
 		left = (ch == 'l');
-		right = (ch == 'r');
 		check_message();
 	}
-	if (left || right) {
-		if (left) {
-			if (rogue.left_ring) {
-				ring = rogue.left_ring;
-			} else {
-				message(no_ring, 0);
-			}
-		} else {
-			if (rogue.right_ring) {
-				ring = rogue.right_ring;
-			} else {
-				message(no_ring, 0);
-			}
-		}
-		if (ring->is_cursed) {
-			message(curse_message, 0);
-		} else {
-			un_put_on(ring);
-			strcpy(buf, "removed ");
-			get_desc(ring, buf + 8);
-			message(buf, 0);
-			reg_move();
-		}
+
+	object *ring = left ? rogue.left_ring : rogue.right_ring;
+	if (ring->is_cursed)
+		message(curse_message, 0);
+	else {
+		un_put_on(ring);
+		messagef(0, "removed %s", get_desc_str(ring));
+		reg_move();
 	}
 }
 
-void
-un_put_on(object *ring)
-{
+void un_put_on(object *ring) {
 	if (ring && (ring->in_use_flags & ON_LEFT_HAND)) {
 		ring->in_use_flags &= (~ON_LEFT_HAND);
 		rogue.left_ring = NULL;
@@ -199,16 +158,13 @@ un_put_on(object *ring)
 	ring_stats(1);
 }
 
-void
-gr_ring(object *ring, boolean assign_wk)
-{
+void gr_ring(object *ring, bool assign_wk) {
 	ring->what_is = RING;
-	if (assign_wk) {
+	if (assign_wk)
 		ring->which_kind = get_rand(0, (RINGS - 1));
-	}
 	ring->class = 0;
 
-	switch(ring->which_kind) {
+	switch (ring->which_kind) {
 	case R_TELEPORT:
 		ring->is_cursed = 1;
 		break;
@@ -224,39 +180,24 @@ gr_ring(object *ring, boolean assign_wk)
 	}
 }
 
-void
-inv_rings(void)
-{
-	char buf[DCOLS];
-
-	if (r_rings == 0) {
+void inv_rings(void) {
+	if (r_rings == 0)
 		message("not wearing any rings", 0);
-	} else {
-		if (rogue.left_ring) {
-			get_desc(rogue.left_ring, buf);
-			message(buf, 0);
-		}
-		if (rogue.right_ring) {
-			get_desc(rogue.right_ring, buf);
-			message(buf, 0);
-		}
+	else {
+		if (rogue.left_ring)
+			message(get_desc_str(rogue.left_ring), 0);
+		if (rogue.right_ring)
+			message(get_desc_str(rogue.right_ring), 0);
 	}
-	if (wizard) {
-		sprintf(buf, "ste %hi, r_r %hi, e_r %hi, r_t %d, s_s %d"
+	if (wizard)
+		messagef(0, "ste %hi, r_r %hi, e_r %hi, r_t %d, s_s %d"
 			", a_s %hi, reg %hi, r_e %hi, s_i %d, m_a %d, aus %hi",
 			stealthy, r_rings, e_rings, r_teleport, sustain_strength,
 			add_strength, regeneration, ring_exp, r_see_invisible,
 			maintain_armor, auto_search);
-		message(buf, 0);
-	}
 }
 
-void
-ring_stats(boolean pr)
-{
-	short i;
-	object *ring;
-
+void ring_stats(bool pr) {
 	stealthy = 0;
 	r_rings = 0;
 	e_rings = 0;
@@ -269,45 +210,25 @@ ring_stats(boolean pr)
 	maintain_armor = 0;
 	auto_search = 0;
 
-	for (i = 0; i < 2; i++) {
+	object *ring;
+	for (short i = 0; i < 2; i++) {
 		if (!(ring = ((i == 0) ? rogue.left_ring : rogue.right_ring))) {
 			continue;
 		}
 		r_rings++;
 		e_rings++;
-		switch(ring->which_kind) {
-		case STEALTH:
-			stealthy++;
-			break;
-		case R_TELEPORT:
-			r_teleport = 1;
-			break;
-		case REGENERATION:
-			regeneration++;
-			break;
-		case SLOW_DIGEST:
-			e_rings -= 2;
-			break;
-		case ADD_STRENGTH:
-			add_strength += ring->class;
-			break;
-		case SUSTAIN_STRENGTH:
-			sustain_strength = 1;
-			break;
-		case DEXTERITY:
-			ring_exp += ring->class;
-			break;
-		case ADORNMENT:
-			break;
-		case R_SEE_INVISIBLE:
-			r_see_invisible = 1;
-			break;
-		case MAINTAIN_ARMOR:
-			maintain_armor = 1;
-			break;
-		case SEARCHING:
-			auto_search += 2;
-			break;
+		switch (ring->which_kind) {
+		case STEALTH:          stealthy++;                  break;
+		case R_TELEPORT:       r_teleport = 1;              break;
+		case REGENERATION:     regeneration++;              break;
+		case SLOW_DIGEST:      e_rings -= 2;                break;
+		case ADD_STRENGTH:     add_strength += ring->class; break;
+		case SUSTAIN_STRENGTH: sustain_strength = 1;        break;
+		case DEXTERITY:        ring_exp += ring->class;     break;
+		case R_SEE_INVISIBLE:  r_see_invisible = 1;         break;
+		case MAINTAIN_ARMOR:   maintain_armor = 1;          break;
+		case SEARCHING:        auto_search += 2;            break;
+		case ADORNMENT:        /* Does nothing */           break;
 		}
 	}
 	if (pr) {

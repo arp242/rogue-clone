@@ -1,6 +1,5 @@
-/*-
- * Copyright (c) 1988, 1993
- *	The Regents of the University of California.  All rights reserved.
+/* Copyright (c) 1988, 1993
+ * The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software contributed to Berkeley by
  * Timothy C. Stoehr.
@@ -29,12 +28,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)score.c	8.1 (Berkeley) 5/31/93
+ * @(#)score.c 8.1 (Berkeley) 5/31/93
  * $FreeBSD: src/games/rogue/score.c,v 1.4 1999/11/30 03:49:27 billf Exp $
- */
-
-/*
- * score.c
  *
  * This source herein may be modified and/or distributed by anybody who
  * so desires, with the following restrictions:
@@ -42,7 +37,6 @@
  *    2.)  Credit shall not be taken for the creation of this source.
  *    3.)  This code is not to be traded, sold, or used for personal
  *         gain or profit.
- *
  */
 
 #include <stdio.h>
@@ -52,52 +46,36 @@
 static void center(short, const char *);
 static int get_value(const object *);
 static void id_all(void);
-static void insert_score(char [][82], char [][30], const char *, short, short,
-			const object *, short);
-static int name_cmp(char *, const char *);
-static void nickize(char *, const char *, const char *);
+static void score_reason(char[128], const object *, short);
 static void sell_pack(void);
-static void sf_error(const char *) __dead2;
+static void sf_error(const char *);
 
 void killed_by(const object *monster, short other) {
-	char buf[128];
-
 	md_ignore_signals();
 
-	if (other != QUIT) {
+	if (other != QUIT)
 		rogue.gold = ((rogue.gold * 9) / 10);
-	}
 
+	char buf[128];
 	if (other) {
-		switch(other) {
-		case HYPOTHERMIA:
-			strcpy(buf, "died of hypothermia");
-			break;
-		case STARVATION:
-			strcpy(buf, "died of starvation");
-			break;
-		case POISON_DART:
-			strcpy(buf, "killed by a dart");
-			break;
-		case QUIT:
-			strcpy(buf, "quit");
-			break;
-		case KFIRE:
-			strcpy(buf, "killed by fire");
-			break;
+		switch (other) {
+		case HYPOTHERMIA: strcpy(buf, "died of hypothermia"); break;
+		case STARVATION:  strcpy(buf, "died of starvation");  break;
+		case POISON_DART: strcpy(buf, "killed by a dart");    break;
+		case QUIT:        strcpy(buf, "quit");                break;
+		case KFIRE:       strcpy(buf, "killed by fire");      break;
 		}
 	} else {
 		strcpy(buf, "Killed by ");
-		if (is_vowel(m_names[monster->m_char - 'A'][0])) {
+		if (is_vowel(m_names[monster->m_char - 'A'][0]))
 			strcat(buf, "an ");
-		} else {
+		else
 			strcat(buf, "a ");
-		}
 		strcat(buf, m_names[monster->m_char - 'A']);
 	}
 	strcat(buf, " with ");
-	sprintf(buf+strlen(buf), "%ld gold", rogue.gold);
-	if ((!other) && (!no_skull)) {
+	sprintf(buf + strlen(buf), "%ld gold", rogue.gold);
+	if (!other && !no_skull) {
 		clear();
 		mvaddstr(4, 32, "__---------__");
 		mvaddstr(5, 30, "_~             ~_");
@@ -117,15 +95,14 @@ void killed_by(const object *monster, short other) {
 		mvaddstr(19, 33, "~---------~");
 		center(21, nick_name);
 		center(22, buf);
-	} else {
+	} else
 		message(buf, 0);
-	}
 	message("", 0);
 	put_scores(monster, other);
 }
 
 void win(void) {
-	unwield(rogue.weapon);		/* disarm and relax */
+	unwield(rogue.weapon);  // disarm and relax
 	unwear(rogue.armor);
 	un_put_on(rogue.left_ring);
 	un_put_on(rogue.right_ring);
@@ -146,24 +123,20 @@ void win(void) {
 	put_scores(NULL, WIN);
 }
 
-void quit(boolean from_intrpt) {
-	char buf[128];
-	short i, orow, ocol;
-	boolean mc;
-
-	orow = ocol = 0;
-	mc = FALSE;
+void quit(bool from_intrpt) {
 	md_ignore_signals();
 
+	bool mc = FALSE;
+	short orow = 0, ocol = 0;
+	char buf[128];
 	if (from_intrpt) {
 		orow = rogue.row;
 		ocol = rogue.col;
 
 		mc = msg_cleared;
 
-		for (i = 0; i < DCOLS; i++) {
+		for (short i = 0; i < DCOLS; i++)
 			buf[i] = (short)mvinch(0, i);
-		}
 	}
 	check_message();
 	message("really quit?", 1);
@@ -171,34 +144,33 @@ void quit(boolean from_intrpt) {
 		md_heed_signals();
 		check_message();
 		if (from_intrpt) {
-			for (i = 0; i < DCOLS; i++) {
+			for (short i = 0; i < DCOLS; i++)
 				mvaddch(0, i, buf[i]);
-			}
 			msg_cleared = mc;
 			move(orow, ocol);
 			refresh();
 		}
 		return;
 	}
-	if (from_intrpt) {
+	if (from_intrpt)
 		clean_up(byebye_string);
-	}
 	check_message();
 	killed_by(NULL, QUIT);
 }
 
+struct scoreline {
+	short rank;
+	int   gold;
+	char  nick[31];
+	char  reason[128];
+};
+
 void put_scores(const object *monster, short other) {
-	short i, n, rank = 10, x, ne = 0;
-	char scores[10][82];
-	char n_names[10][30];
-	char buf[128];
-	FILE *fp;
-	long s;
-	const char *file = md_scorefile();
-	boolean pause = score_only;
+	bool pause = score_only;  // score_only is the -s flag from the CLI.
 
 	md_lock(1);
-
+	const char *file = md_scorefile();
+	FILE *fp;
 	if ((fp = fopen(file, "r+")) == NULL && (fp = fopen(file, "w+")) == NULL) {
 		char errmsg[1024];
 	    snprintf(errmsg, 1024, "cannot read/write score file %s: %s", file, strerror(errno));
@@ -206,182 +178,125 @@ void put_scores(const object *monster, short other) {
 		sf_error(errmsg);
 	}
 	rewind(fp);
-	xxx(1);
 
-	for (i = 0; i < 10; i++) {
-		if (((n = fread(scores[i], sizeof(char), 80, fp)) < 80) && (n != 0)) {
-			sf_error(NULL);
-		} else if (n != 0) {
-			xxxx(scores[i], 80);
-			if ((n = fread(n_names[i], sizeof(char), 30, fp)) < 30) {
-				sf_error(NULL);
-			}
-			xxxx(n_names[i], 30);
-		} else {
-			break;
-		}
-		ne++;
-		if ((!score_only)) {
-			if (!name_cmp(scores[i]+15, login_name)) {
-				x = 5;
-				while (scores[i][x] == ' ') {
-					x++;
-				}
-				s = lget_number(scores[i] + x);
-				if (rogue.gold < s) {
-					score_only = 1;
-				}
-			}
-		}
-	}
+	struct scoreline scores[NUM_SCORES] = {{0}};
+	int n = fread(&scores, sizeof(char), sizeof(scores), fp);
+	if (n < sizeof(scores) && n != 0)
+		sf_error(NULL);
 
-	/* If we're going to insert ourselves, do it now */
+	short rank = 0;
 	if (!score_only) {
-		for (i = 0; i < ne; i++) {
-			x = 5;
-			while (scores[i][x] == ' ') {
-				x++;
-			}
-			s = lget_number(scores[i] + x);
-
-			if (rogue.gold >= s) {
-				rank = i;
+		for (short i = 0; i < NUM_SCORES; i++) {
+			if (rogue.gold > scores[i].gold) {
+				rank = i + 1;
 				break;
 			}
 		}
-		if (ne == 0) {
-			rank = 0;
-		} else if ((ne < 10) && (rank == 10)) {
-			rank = ne;
-		}
-		if (rank < 10) {
-			insert_score(scores, n_names, nick_name, rank, ne, monster,
-				other);
-			if (ne < 10) {
-				ne++;
+
+		if (rank >= 1) {
+			for (short i = NUM_SCORES; i >= rank - 1; i--) {
+				if (scores[i].rank == 0)
+					continue;
+				scores[i].rank = i + 2;
+				scores[i + 1] = scores[i];
 			}
+			struct scoreline s = {rank, rogue.gold, "Jan 12 '23", ""};
+			snprintf(s.nick, sizeof(s.nick) - 1, "%s", nick_name);
+			score_reason(s.reason, monster, other);
+			scores[rank - 1] = s;
 		}
-		rewind(fp);
 	}
 
 	clear();
-	mvaddstr(3, 30, "Top  Ten  Rogueists");
-	mvaddstr(8, 0, "Rank   Score   Name");
+	mvaddstr(1, 30, "Top  Rogueists");
+	mvaddstr(2, 0, "Rank   Score    Name");
+
+	short offset = 0;
+	for (short i = 0; i < NUM_SCORES; i++) {
+		if (scores[i].rank == 0)
+			break;
+
+		char buf[128];
+		snprintf(buf, 128, "%2d    %6d    %s: %s\n",
+			scores[i].rank, scores[i].gold, scores[i].nick, scores[i].reason);
+
+		if (i == rank - 1)
+			standout();
+		/// Wrap to next line with indent if >80 chars. 64 characters available
+		/// – needs to indent 16.
+		int l = 80;
+		if (strlen(buf) > l + 1) {
+			char buf2[80] = {0};
+			while (buf[l] != ' ')
+				l--;
+			strncpy(buf2, buf, l);
+			mvaddstr(i + offset + 3, 0, buf2);
+
+			buf2[0] = 0;
+			strncpy(buf2, &buf[l+1], 80);
+			mvaddstr(i + offset + 4, 0, "                ");
+			mvaddstr(i + offset + 4, 16, buf2);
+			offset++;
+		} else
+			mvaddstr(i + offset + 3, 0, buf);
+		if (i == rank - 1)
+			standend();
+	}
 
 	md_ignore_signals();
-
-	xxx(1);
-
-	for (i = 0; i < ne; i++) {
-		if (i == rank) {
-			standout();
-		}
-		if (i == 9) {
-			scores[i][0] = '1';
-			scores[i][1] = '0';
-		} else {
-			scores[i][0] = ' ';
-			scores[i][1] = i + '1';
-		}
-		nickize(buf, scores[i], n_names[i]);
-		mvaddstr(i+10, 0, buf);
-		if (rank < 10) {
-			xxxx(scores[i], 80);
-			fwrite(scores[i], sizeof(char), 80, fp);
-			xxxx(n_names[i], 30);
-			fwrite(n_names[i], sizeof(char), 30, fp);
-		}
-		if (i == rank) {
-			standend();
-		}
+	if (!score_only && rank >= 1) {
+		rewind(fp);
+		fwrite((char *)&scores, sizeof(char), sizeof(scores), fp);
 	}
+
 	md_lock(0);
 	refresh();
 	fclose(fp);
 	message("", 0);
-	if (pause) {
+	if (pause)
 		message("", 0);
-	}
 	clean_up("");
 }
 
-static void insert_score(
-	char scores[][82], char n_names[][30], const char *n_name,
-	short rank, short n, const object *monster, short other
-) {
-	short i;
-	char buf[128];
-
-	if (n > 0) {
-		for (i = n; i > rank; i--) {
-			if ((i < 10) && (i > 0)) {
-				strcpy(scores[i], scores[i-1]);
-				strcpy(n_names[i], n_names[i-1]);
-			}
-		}
-	}
-	sprintf(buf, "%2d    %6ld   %s: ", rank+1, rogue.gold, login_name);
-
+static void score_reason(char buf[128], const object *monster, short other) {
 	if (other) {
-		switch(other) {
-		case HYPOTHERMIA:
-			strcat(buf, "died of hypothermia");
-			break;
-		case STARVATION:
-			strcat(buf, "died of starvation");
-			break;
-		case POISON_DART:
-			strcat(buf, "killed by a dart");
-			break;
-		case QUIT:
-			strcat(buf, "quit");
-			break;
-		case WIN:
-			strcat(buf, "a total winner");
-			break;
-		case KFIRE:
-			strcpy(buf, "killed by fire");
-			break;
+		switch (other) {
+		case HYPOTHERMIA: strncat(buf, "died of hypothermia", 128); break;
+		case STARVATION:  strncat(buf, "died of starvation", 128);  break;
+		case POISON_DART: strncat(buf, "killed by a dart", 128);    break;
+		case QUIT:        strncat(buf, "quit", 128);                break;
+		case WIN:         strncat(buf, "a total winner", 128);      break;
+		case KFIRE:       strncpy(buf, "killed by fire", 128);      break;
 		}
-	} else {
-		strcat(buf, "killed by ");
-		if (is_vowel(m_names[monster->m_char - 'A'][0])) {
-			strcat(buf, "an ");
-		} else {
-			strcat(buf, "a ");
-		}
-		strcat(buf, m_names[monster->m_char - 'A']);
 	}
-	sprintf(buf+strlen(buf), " on level %d ",  max_level);
-	if ((other != WIN) && has_amulet()) {
-		strcat(buf, "with amulet");
+	else {
+		snprintf(buf, 128, "killed by a%s %s",
+			is_vowel(m_names[monster->m_char - 'A'][0]) ? "n" : "",
+			m_names[monster->m_char - 'A']);
+		//strcat(buf, "killed by ");
+		//strcat(buf, is_vowel(m_names[monster->m_char - 'A'][0]) ? "an " : "a ");
+		//strcat(buf, m_names[monster->m_char - 'A']);
 	}
-	for (i = strlen(buf); i < 79; i++) {
-		buf[i] = ' ';
-	}
-	buf[79] = 0;
-	strcpy(scores[rank], buf);
-	strcpy(n_names[rank], n_name);
+	sprintf(buf + strlen(buf), " on %s at level %d ", "Jun 19 '23", max_level);
+	if (other != WIN && has_amulet())
+		strncat(buf, "with amulet", 128);
 }
 
-boolean is_vowel(short ch) {
-	return((ch == 'a') || (ch == 'e') || (ch == 'i') || (ch == 'o') || (ch == 'u'));
+bool is_vowel(short ch) {
+	return ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u';
 }
 
 static void sell_pack(void) {
-	object *obj;
-	short row = 2, val;
-	char buf[DCOLS];
-
-	obj = rogue.pack.next_object;
-
 	clear();
 	mvaddstr(1, 0, "Value      Item");
 
+	char buf[DCOLS];
+	short row = 2;
+	object *obj = rogue.pack.next_object;
 	while (obj) {
 		if (obj->what_is != FOOD) {
 			obj->identified = 1;
-			val = get_value(obj);
+			short val = get_value(obj);
 			rogue.gold += val;
 
 			if (row < DROWS) {
@@ -393,35 +308,27 @@ static void sell_pack(void) {
 		obj = obj->next_object;
 	}
 	refresh();
-	if (rogue.gold > MAX_GOLD) {
+	if (rogue.gold > MAX_GOLD)
 		rogue.gold = MAX_GOLD;
-	}
 	message("", 0);
 }
 
 static int get_value(const object *obj) {
-	short wc;
-	int val;
-
-	val = 0;
-	wc = obj->which_kind;
-
-	switch(obj->what_is) {
+	int val = 0;
+	short wc = obj->which_kind;
+	switch (obj->what_is) {
 	case WEAPON:
 		val = id_weapons[wc].value;
-		if ((wc == ARROW) || (wc == DAGGER) || (wc == SHURIKEN) ||
-			(wc == DART)) {
+		if (wc == ARROW || wc == DAGGER || wc == SHURIKEN || wc == DART)
 			val *= obj->quantity;
-		}
 		val += (obj->d_enchant * 85);
 		val += (obj->hit_enchant * 85);
 		break;
 	case ARMOR:
 		val = id_armors[wc].value;
 		val += (obj->d_enchant * 75);
-		if (obj->is_protected) {
+		if (obj->is_protected)
 			val += 200;
-		}
 		break;
 	case WAND:
 		val = id_wands[wc].value * (obj->class + 1);
@@ -439,100 +346,26 @@ static int get_value(const object *obj) {
 		val = id_rings[wc].value * (obj->class + 1);
 		break;
 	}
-	if (val <= 0) {
+	if (val <= 0)
 		val = 10;
-	}
-	return(val);
+	return val;
 }
 
 static void id_all(void) {
-	short i;
-
-	for (i = 0; i < SCROLS; i++) {
+	for (short i = 0; i < SCROLS; i++)
 		id_scrolls[i].id_status = IDENTIFIED;
-	}
-	for (i = 0; i < WEAPONS; i++) {
+	for (short i = 0; i < WEAPONS; i++)
 		id_weapons[i].id_status = IDENTIFIED;
-	}
-	for (i = 0; i < ARMORS; i++) {
+	for (short i = 0; i < ARMORS; i++)
 		id_armors[i].id_status = IDENTIFIED;
-	}
-	for (i = 0; i < WANDS; i++) {
+	for (short i = 0; i < WANDS; i++)
 		id_wands[i].id_status = IDENTIFIED;
-	}
-	for (i = 0; i < POTIONS; i++) {
+	for (short i = 0; i < POTIONS; i++)
 		id_potions[i].id_status = IDENTIFIED;
-	}
-}
-
-static int name_cmp(char *s1, const char *s2) {
-	short i = 0;
-	int r;
-
-	while(s1[i] != ':') {
-		i++;
-	}
-	s1[i] = 0;
-	r = strcmp(s1, s2);
-	s1[i] = ':';
-	return(r);
-}
-
-void xxxx(char *buf, short n) {
-	short i;
-	unsigned char c;
-
-	for (i = 0; i < n; i++) {
-
-		/* It does not matter if accuracy is lost during this assignment */
-		c = (unsigned char)xxx(0);
-
-		buf[i] ^= c;
-	}
-}
-
-long xxx(boolean st) {
-	static long f, s;
-	long r;
-
-	if (st) {
-		f = 37;
-		s = 7;
-		return(0L);
-	}
-	r = ((f * s) + 9337) % 8887;
-	f = s;
-	s = r;
-	return(r);
-}
-
-static void nickize(char *buf, const char *score, const char *n_name) {
-	short i = 15, j;
-
-	if (!n_name[0]) {
-		strcpy(buf, score);
-	} else {
-		strncpy(buf, score, 16);
-
-		while (score[i] != ':') {
-			i++;
-		}
-
-		strcpy(buf+15, n_name);
-		j = strlen(buf);
-
-		while (score[i]) {
-			buf[j++] = score[i++];
-		}
-		buf[j] = 0;
-		buf[79] = 0;
-	}
 }
 
 static void center(short row, const char *buf) {
-	short margin;
-
-	margin = ((DCOLS - strlen(buf)) / 2);
+	short margin = ((DCOLS - strlen(buf)) / 2);
 	mvaddstr(row, margin, buf);
 }
 

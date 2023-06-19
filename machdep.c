@@ -1,6 +1,5 @@
-/*-
- * Copyright (c) 1988, 1993
- *	The Regents of the University of California.  All rights reserved.
+/* Copyright (c) 1988, 1993
+ * The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software contributed to Berkeley by
  * Timothy C. Stoehr.
@@ -29,12 +28,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)machdep.c	8.1 (Berkeley) 5/31/93
+ * @(#)machdep.c 8.1 (Berkeley) 5/31/93
  * $FreeBSD: src/games/rogue/machdep.c,v 1.6.2.1 2001/12/17 12:43:23 phantom Exp $
- */
-
-/*
- * machdep.c
  *
  * This source herein may be modified and/or distributed by anybody who
  * so desires, with the following restrictions:
@@ -42,16 +37,11 @@
  *    2.)  Credit shall not be taken for the creation of this source.
  *    3.)  This code is not to be traded, sold, or used for personal
  *         gain or profit.
- *
  */
 
-
 #include <stdio.h>
-#include <sys/types.h>
 #include <sys/file.h>
 #include <sys/stat.h>
-#include <time.h>
-#include <fcntl.h>
 
 #include <signal.h>
 #include <stdlib.h>
@@ -72,51 +62,6 @@ void md_ignore_signals(void) {
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
 #endif
-}
-
-int md_get_file_id(const char *fname) {
-	struct stat sbuf;
-	if (stat(fname, &sbuf))
-		return -1;
-	return((int)sbuf.st_ino);
-}
-
-int md_link_count(const char *fname) {
-	struct stat sbuf;
-	stat(fname, &sbuf);
-	return((int)sbuf.st_nlink);
-}
-
-void md_gct(struct rogue_time *rt_buf) {
-	struct tm *t;
-	time_t seconds;
-
-	time(&seconds);
-	t = localtime(&seconds);
-
-	rt_buf->year = t->tm_year;
-	rt_buf->month = t->tm_mon + 1;
-	rt_buf->day = t->tm_mday;
-	rt_buf->hour = t->tm_hour;
-	rt_buf->minute = t->tm_min;
-	rt_buf->second = t->tm_sec;
-}
-
-void md_gfmt(const char *fname, struct rogue_time *rt_buf) {
-	struct stat sbuf;
-	time_t seconds;
-	struct tm *t;
-
-	stat(fname, &sbuf);
-	seconds = sbuf.st_mtime;
-	t = localtime(&seconds);
-
-	rt_buf->year = t->tm_year;
-	rt_buf->month = t->tm_mon + 1;
-	rt_buf->day = t->tm_mday;
-	rt_buf->hour = t->tm_hour;
-	rt_buf->minute = t->tm_min;
-	rt_buf->second = t->tm_sec;
 }
 
 char * md_user(void) {
@@ -142,18 +87,18 @@ char * md_savedir(void) {
 #ifdef WINDOWS
 		if (!home)
 			clean_up("md_scorefile: invalid $HOME\n");
-		base = malloc(strlen(home) + 14);
-		snprintf(base, strlen(home) + 8, "%s/_rogue", home);
+		base = calloc(strlen(home) + 14, sizeof(char));
+		snprintf(base, strlen(home) + 14, "%s/_rogue-clone", home);
 #else
 		if (!home || home[0] != '/')
 			clean_up("md_scorefile: invalid $HOME\n");
-		base = malloc(strlen(home) + 14);
+		base = calloc(strlen(home) + 14, sizeof(char));
 		snprintf(base, strlen(home) + 14, "%s/.local/share", home);
 #endif
 	}
 
-	char *dir = malloc(strlen(base) + 7);
-	snprintf(dir, strlen(base) + 7, "%s/rogue", base);
+	char *dir = calloc(strlen(base) + 13, sizeof(char));
+	snprintf(dir, strlen(base) + 13, "%s/rogue-clone", base);
 #ifdef WINDOWS
 	mkdir(dir);
 #else
@@ -166,9 +111,8 @@ char * md_savedir(void) {
 
 char * md_scorefile(void) {
 	char *dir = md_savedir();
-
-	char *file = malloc(strlen(dir) + 8);
-	snprintf(file, strlen(dir) + 8, "%s/score", dir);
+	char *file = calloc(strlen(dir) + 13, sizeof(char));
+	snprintf(file, strlen(dir) + 13, "%s/score", dir);
 
 	free(dir);
 	return file;
@@ -176,9 +120,8 @@ char * md_scorefile(void) {
 
 char * md_savefile(void) {
 	char *dir = md_savedir();
-
-	char *file = malloc(strlen(dir) + 6);
-	snprintf(file, strlen(dir) + 8, "%s/save", dir);
+	char *file = calloc(strlen(dir) + 12, sizeof(char));
+	snprintf(file, strlen(dir) + 12, "%s/save", dir);
 
 	free(dir);
 	return file;
@@ -186,18 +129,21 @@ char * md_savefile(void) {
 
 // When the parameter 'l' is non-zero a lock is requested. Otherwise the lock is
 // released.
-void md_lock(boolean l) {
-#ifdef WINDOWS
+void md_lock(bool l) {
+#if defined(WINDOWS) || defined(WASM)
 	// Nothing or now.
 #else
 	static int fd;
 	short tries;
 
 	if (l) {
-		if ((fd = open(md_scorefile(), O_RDONLY)) < 1) {
+		char *f = md_scorefile();
+		if ((fd = open(f, O_RDONLY)) < 1) {
+			free(f);
 			message("cannot lock score file", 0);
 			return;
 		}
+		free(f);
 		for (tries = 0; tries < 5; tries++)
 			if (!flock(fd, LOCK_EX|LOCK_NB))
 				return;
@@ -209,33 +155,34 @@ void md_lock(boolean l) {
 }
 
 int get_rand(int x, int y) {
-	int r, t;
-	long lr;
-
+	int t;
 	if (x > y) {
 		t = y;
 		y = x;
 		x = t;
 	}
+
+	long lr;
 #ifdef WINDOWS
 	lr = rand();
 #else
 	lr = random();
 #endif
 	lr &= 0x00003fffL;
-	r = (int)lr;
+
+	int r = (int)lr;
 	r = (r % ((y - x) + 1)) + x;
-	return(r);
+	return r;
 }
 
-boolean rand_percent(int percentage) {
-	return(get_rand(1, 100) <= percentage);
+bool rand_percent(int percentage) {
+	return get_rand(1, 100) <= percentage;
 }
 
-boolean coin_toss(void) {
+bool coin_toss(void) {
 #ifdef WINDOWS
-	return(((rand() & 01) ? 1 : 0));
+	return ((rand() & 01) ? 1 : 0);
 #else
-	return(((random() & 01) ? 1 : 0));
+	return ((random() & 01) ? 1 : 0);
 #endif
 }

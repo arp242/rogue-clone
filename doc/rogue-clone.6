@@ -25,19 +25,20 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"	@(#)rogue.6	8.1 (Berkeley) 5/31/93
+.\"	@(#)rogue.6 8.1 (Berkeley) 5/31/93
 .\" $FreeBSD: src/games/rogue/rogue.6,v 1.4.2.3 2001/12/14 14:26:32 ru Exp $
 .\" $DragonFly: src/games/rogue/rogue.6,v 1.3 2006/02/17 19:33:31 swildner Exp $
 .\"
-.Dd November 14, 2009
-.Dt ROGUE 6
+.Dd June 19, 2023
+.Dt ROGUE-CLONE 6
 .Os
 .Sh NAME
-.Nm rogue
+.Nm rogue-clone
 .Nd exploring The Dungeons of Doom
 .Sh SYNOPSIS
 .Nm
 .Op Ar save_file
+.Op Ar -S seed
 .Op Fl s
 .Sh DESCRIPTION
 The
@@ -79,15 +80,18 @@ The
 .Fl s
 option will print out the list of scores.
 .Pp
+The
+.Fl S
+option can be used to set a fixed randomness seed.
 For more detailed directions, read the document
 .Rs
 .%B "A Guide to the Dungeons of Doom"
 .Re
 .Sh FILES
-.Bl -tag -width ~/.local/share/rogue/scoreXX -compact
-.It Pa ~/.local/share/rogue/score
+.Bl -tag -width ~/.local/share/rogue-clone/scoreXX -compact
+.It Pa ~/.local/share/rogue-clone/score
 score file
-.It Pa ~/.local/share/rogue/save
+.It Pa ~/.local/share/rogue-clone/save
 default save file
 .El
 .Sh SEE ALSO
