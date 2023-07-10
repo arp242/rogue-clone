@@ -1,11 +1,13 @@
 The "rogue" game from 4.3BSD-Tahoe, for modern systems.
 
+![screenshot.png](https://raw.githubusercontent.com/arp242/rogue-clone/master/doc/screenshot.png)
+
 There are many versions and variants of the original rogue game; the original
 was shipped with 4.2BSD in 1980, and throughout the 80s the original authors
 released different versions, and others made their own variants based on
 "leaked" source code.
 
-This one is a "clone" added to [4.3BSD-Tahoe] in 1987 and was written by Timothy
+This one is a "clone" added to 4.3BSD-Tahoe in 1987 and was written by Timothy
 C. Stoehr; it doesn't re-use any code from the original but was intended as a
 "freely distributable open source" re-implementation (for a while it was named
 "pdrogue" for "public domain rogue", but got renamed to "rogue" a bit later on).
@@ -94,12 +96,12 @@ options:
 | file            | ~/.local/share/rogue-clone/save | Save file                                                        |
 | name=           | $USER                           | Character name; detaults to user name; use `*` for a random name |
 | fruit=          | slime-mold                      | Name of the "fruit" food                                         |
-| lowhealth=      | 0                               | Print health in standout if HP is lower than this number.        |
-| noaskquit       | (not set)                       | Don't ask confirmation on SIGQUIT (^\, no effect for Q)          |
+| lowhealth=      | 0                               | Print health in standout if HP is lower than this number         |
+| noaskquit       | (not set)                       | Don't ask confirmation on SIGQUIT (`^\`, no effect for Q)        |
 | noskull, notomb | (not set)                       | Don't display headstone after death                              |
 | passgo          | (not set)                       | Run around corners with Shift                                    |
-| lock            | (not set)                       | Don't allow changing name or save path in `o` menu.              |
-| noautosave      | (not set)                       | Don't autosave every 120 moves and on level change.              |
+| lock            | (not set)                       | Don't allow changing name or save path in `o` menu               |
+| noautosave      | (not set)                       | Don't autosave every 120 moves and on level change               |
 | revshift        | (not set)                       | Reverse shift+dir/ctrl+dir                                       |
 
 e.g. `export ROGUE_CLONE_OPTS='name=*,lowhealth=5,passgo'`.
@@ -125,7 +127,7 @@ contemporary usage patterns:
 
 - `!` prints game seed, and you can set the game seed on startup with -S.
 
-  In the original `!` would drop back to shell; this is removes as it doesn't
+  In the original `!` would drop back to shell; this is removed as it doesn't
   work on Windows or WASM and it's pretty useless in modern context anyway where
   you can just open a new xterm or use tmux or whatever.
 
@@ -136,11 +138,11 @@ contemporary usage patterns:
   this was needed to add numpad support.
 
 - Rename `ROGUEOPTS` to `ROGUE_CLONE_OPTS`; this way it won't conflict with
-  other variations of rogue.
+  other rogue variants.
 
 - Store name in savegame.
 
-- name=* selects a random name.
+- name=* selects a random name from a built-in list.
 
 - Add `lowhealth` option to make health stand out if it's low.
 
